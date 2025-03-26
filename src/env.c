@@ -5,8 +5,7 @@
 ** Environment handling functions
 */
 
-#include "../includes/env.h"
-#include "../includes/my_string.h"
+#include "../includes/my.h"
 #include <stdlib.h>
 #include <unistd.h>
 

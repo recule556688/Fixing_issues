@@ -5,7 +5,7 @@
 ** Basic string utility functions
 */
 
-#include "../includes/my_string.h"
+#include "../includes/my.h"
 #include <stdlib.h>
 #include <unistd.h>
 

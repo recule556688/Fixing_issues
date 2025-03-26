@@ -5,7 +5,7 @@
 ** String comparison functions
 */
 
-#include "../includes/my_string.h"
+#include "../includes/my.h"
 
 int my_strcmp(const char *s1, const char *s2)
 {

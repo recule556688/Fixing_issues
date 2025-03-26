@@ -5,9 +5,9 @@
 ** Main minishell file
 */
 
-#include "../includes/minishell.h"
+#include "../includes/my.h"
 
-static const builtin_cmd_t BUILTINS[] = {
+const builtin_cmd_t BUILTINS[] = {
     {"cd", &builtin_cd},
     {"env", &builtin_env},
     {"setenv", &builtin_setenv},
@@ -34,6 +34,7 @@ static void handle_child_process(char **args, shell_t *shell)
     }
 }
 
+// This function is kept for backward compatibility, used for simple commands
 static void process_command(char **args, shell_t *shell)
 {
     pid_t pid;
@@ -54,24 +55,17 @@ static void process_command(char **args, shell_t *shell)
     }
 }
 
-static char **tokenize_input(char *line, int *arg_count)
+static void process_input_line(char *line, shell_t *shell)
 {
-    char **args = malloc(sizeof(char *) * MAX_TOKENS);
-    char *token;
+    command_list_t *cmd_list;
 
-    if (!args) {
-        write(2, "Error: malloc failed\n", 23);
-        exit(84);
+    if (line[0] == '\0')
+        return;
+    cmd_list = parse_input(line);
+    if (cmd_list) {
+        execute_command_list(cmd_list, shell);
+        free_command_list(cmd_list);
     }
-    *arg_count = 0;
-    token = strtok(line, " \t");
-    while (token && *arg_count < MAX_TOKENS - 1) {
-        args[*arg_count] = token;
-        (*arg_count)++;
-        token = strtok(NULL, " \t");
-    }
-    args[*arg_count] = NULL;
-    return args;
 }
 
 static void cleanup_shell(shell_t *shell)
@@ -79,19 +73,6 @@ static void cleanup_shell(shell_t *shell)
     for (int i = 0; shell->env[i]; i++)
         free(shell->env[i]);
     free(shell->env);
-}
-
-static void process_input_line(char *line, shell_t *shell)
-{
-    int arg_count;
-    char **args;
-
-    if (line[0] == '\0')
-        return;
-    args = tokenize_input(line, &arg_count);
-    if (arg_count > 0)
-        process_command(args, shell);
-    free(args);
 }
 
 static void run_shell_loop(shell_t *shell)
@@ -127,5 +108,7 @@ int main(int argc, char **argv, char **envp)
     (void)argv;
     run_shell_loop(&shell);
     cleanup_shell(&shell);
+    if (shell.last_exit_status > 128)
+        return 1;
     return shell.last_exit_status;
 }

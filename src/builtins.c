@@ -5,9 +5,7 @@
 ** Builtin command functions
 */
 
-#include "../includes/builtins.h"
-#include "../includes/env.h"
-#include "../includes/my_string.h"
+#include "../includes/my.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>

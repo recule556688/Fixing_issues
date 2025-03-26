@@ -5,8 +5,7 @@
 ** Command execution functions
 */
 
-#include "../includes/exec.h"
-#include "../includes/my_string.h"
+#include "../includes/my.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>

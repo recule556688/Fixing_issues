@@ -50,6 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#Custom ignore
 .vscode/
 B-PSU-200_minishell1.pdf
 epitech_c_coding_style.pdf

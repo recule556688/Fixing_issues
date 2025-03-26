@@ -8,11 +8,13 @@
 NAME = mysh
 
 SRC = src/minishell.c \
-      src/string_utils.c \
-      src/string_compare.c \
       src/builtins.c \
       src/env.c \
-      src/exec.c
+      src/exec.c \
+      src/string_utils.c \
+      src/string_compare.c \
+      src/parser.c \
+      src/exec_pipeline.c
 
 OBJ = $(SRC:.c=.o)
 
