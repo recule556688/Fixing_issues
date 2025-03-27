@@ -43,89 +43,127 @@ static int handle_output_redirection(command_t *cmd)
     return STDOUT_FILENO;
 }
 
-static int execute_builtin_with_redirections(command_t *cmd, shell_t *shell,
+//If new_fd != original_fd,
+//creates a backup of original_fd and duplicates new_fd onto original_fd.
+//Returns the backup or -1 if no backup was made.
+static int backup_fd(int new_fd, int original_fd)
+{
+    int backup = -1;
+
+    if (new_fd != original_fd) {
+        backup = dup(original_fd);
+        dup2(new_fd, original_fd);
+    }
+    return backup;
+}
+
+//If backup_fd != -1, dupes backup_fd onto original_fd, closing backup_fd.
+static void restore_fd(int backup_fd, int original_fd)
+{
+    if (backup_fd != -1) {
+        dup2(backup_fd, original_fd);
+        close(backup_fd);
+    }
+}
+
+static int run_redirected_builtin(command_t *cmd, shell_t *shell,
     int input_fd, int output_fd)
 {
-    int stdin_backup = -1;
-    int stdout_backup = -1;
+    int stdin_backup = backup_fd(input_fd, STDIN_FILENO);
+    int stdout_backup = backup_fd(output_fd, STDOUT_FILENO);
     int result = 0;
 
-    if (input_fd != STDIN_FILENO) {
-        stdin_backup = dup(STDIN_FILENO);
-        dup2(input_fd, STDIN_FILENO);
-    }
-    if (output_fd != STDOUT_FILENO) {
-        stdout_backup = dup(STDOUT_FILENO);
-        dup2(output_fd, STDOUT_FILENO);
-    }
     for (int i = 0; BUILTINS[i].name; i++) {
         if (my_strcmp(cmd->args[0], BUILTINS[i].name) == 0) {
             result = BUILTINS[i].func(cmd->args, &shell->env);
             break;
         }
     }
-    if (stdin_backup != -1) {
-        dup2(stdin_backup, STDIN_FILENO);
-        close(stdin_backup);
-    }
-    if (stdout_backup != -1) {
-        dup2(stdout_backup, STDOUT_FILENO);
-        close(stdout_backup);
+    restore_fd(stdin_backup, STDIN_FILENO);
+    restore_fd(stdout_backup, STDOUT_FILENO);
+    return result;
+}
+
+//Removed this since you don't need it.
+            // if (my_strcmp(cmd->args[0], "cd") == 0 &&
+            //     (input_fd != STDIN_FILENO || output_fd != STDOUT_FILENO)) {
+            //     return run_redirected_builtin(cmd, shell,
+            // input_fd, output_fd);
+            // }
+static int handle_builtin(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd)
+{
+    int result = -1;
+
+    for (int i = 0; BUILTINS[i].name; i++) {
+        if (my_strcmp(cmd->args[0], "exit") == 0)
+            return 0;
+        if (my_strcmp(cmd->args[0], BUILTINS[i].name) == 0)
+            return run_redirected_builtin(cmd, shell, input_fd, output_fd);
     }
     return result;
 }
 
-int execute_command(command_t *cmd, shell_t *shell, int input_fd, int output_fd)
+static void run_child_task(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd)
 {
-    pid_t pid;
-    int status;
-    int result = 0;
-
-    if (!cmd->args[0])
-        return 0;
-    for (int i = 0; BUILTINS[i].name; i++) {
-        if (my_strcmp(cmd->args[0], BUILTINS[i].name) == 0) {
-            if (my_strcmp(cmd->args[0], "exit") == 0)
-                return 0;
-            if (my_strcmp(cmd->args[0], "cd") == 0 &&
-                (input_fd != STDIN_FILENO || output_fd != STDOUT_FILENO)) {
-                result = execute_builtin_with_redirections(cmd, shell, input_fd, output_fd);
-                return result;
-            }
-            return execute_builtin_with_redirections(cmd, shell, input_fd,
-                output_fd);
-        }
+    if (input_fd != STDIN_FILENO) {
+        dup2(input_fd, STDIN_FILENO);
+        close(input_fd);
     }
-    pid = fork();
+    if (output_fd != STDOUT_FILENO) {
+        dup2(output_fd, STDOUT_FILENO);
+        close(output_fd);
+    }
+    if (execute_external(cmd->args, shell->env) == -1) {
+        write(2, cmd->args[0], my_strlen(cmd->args[0]));
+        write(2, ": Command not found.\n", 21);
+        exit(1);
+    }
+    exit(0);
+}
+
+static void close_if_not_default(int input_fd, int output_fd)
+{
+    if (input_fd != STDIN_FILENO)
+        close(input_fd);
+    if (output_fd != STDOUT_FILENO)
+        close(output_fd);
+}
+
+static int run_parent_task(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd)
+{
+    int status;
+    pid_t pid = fork();
+
     if (pid < 0) {
         perror("fork");
         return 1;
     }
     if (pid == 0) {
-        if (input_fd != STDIN_FILENO) {
-            dup2(input_fd, STDIN_FILENO);
-            close(input_fd);
-        }
-        if (output_fd != STDOUT_FILENO) {
-            dup2(output_fd, STDOUT_FILENO);
-            close(output_fd);
-        }
-        if (execute_external(cmd->args, shell->env) == -1) {
-            write(2, cmd->args[0], my_strlen(cmd->args[0]));
-            write(2, ": Command not found.\n", 21);
-            exit(1);
-        }
-        exit(0);
+        run_child_task(cmd, shell, input_fd, output_fd);
     } else {
-        if (input_fd != STDIN_FILENO)
-            close(input_fd);
-        if (output_fd != STDOUT_FILENO)
-            close(output_fd);
+        close_if_not_default(input_fd, output_fd);
         waitpid(pid, &status, 0);
         if (WIFEXITED(status))
             return WEXITSTATUS(status);
-        return 1;
     }
+    return 1;
+}
+
+int execute_command(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd)
+{
+    int result = 0;
+
+    if (!cmd->args[0])
+        return 0;
+    result = handle_builtin(cmd, shell, input_fd, output_fd);
+    if (result != -1)
+        return result;
+    else
+        return run_parent_task(cmd, shell, input_fd, output_fd);
 }
 
 int execute_pipeline(command_t *pipeline, shell_t *shell)
