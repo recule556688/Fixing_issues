@@ -21,7 +21,12 @@
     #include <stdbool.h>
 
     #define MAX_TOKENS 128
-
+    #define MALLOC_ERR_MSG "Error: malloc failed\n"
+    #define COMMAND_NOT_FOUND_MSG ": Command not found.\n"
+    #define CD_NO_HOME_MSG "cd: No HOME variable set.\n"
+    #define ENV_TOO_MANY_ARGS_MSG "env: Too many arguments.\n"
+    #define SET_TOO_MANY_ARGS_MSG "setenv: Too many arguments.\n"
+    #define UNSET_TOO_MANY_ARGS_MSG "unsetenv: Too many arguments.\n"
 /* String structure */
 typedef struct string_s {
     char *str;

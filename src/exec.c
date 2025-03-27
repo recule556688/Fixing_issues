@@ -26,7 +26,7 @@ static char *build_path(const char *dir, const char *cmd)
     char *path = malloc(dir_len + cmd_len + 2);
 
     if (!path) {
-        write(2, "Error: malloc failed\n", 23);
+        write(2, MALLOC_ERR_MSG, sizeof(MALLOC_ERR_MSG));
         exit(84);
     }
     for (int i = 0; i < dir_len; i++)
@@ -80,6 +80,6 @@ int execute_external(char **args, char **env)
             return 0;
     }
     write(2, args[0], my_strlen(args[0]));
-    write(2, ": Command not found.\n", 21);
+    write(2, COMMAND_NOT_FOUND_MSG, sizeof(COMMAND_NOT_FOUND_MSG));
     exit(1);
 }

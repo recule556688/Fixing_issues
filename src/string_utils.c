@@ -18,13 +18,15 @@ size_t my_strlen(const char *s)
     return i;
 }
 
+
+
 char *my_strdup(const char *s)
 {
     size_t len = my_strlen(s);
     char *dup = malloc(len + 1);
 
     if (!dup) {
-        write(2, "Error: malloc failed\n", 23);
+        write(2, MALLOC_ERR_MSG, sizeof(MALLOC_ERR_MSG));
         exit(84);
     }
     for (size_t i = 0; i <= len; i++)

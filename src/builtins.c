@@ -15,7 +15,7 @@ static int cd_to_home(char ***env)
     char *home = get_env_value(*env, "HOME");
 
     if (!home) {
-        write(2, "cd: No HOME variable set.\n", 28);
+        write(2, CD_NO_HOME_MSG, sizeof(CD_NO_HOME_MSG));
         return 1;
     }
     if (chdir(home) != 0) {
@@ -39,7 +39,7 @@ int builtin_cd(char **args, char ***env)
 int builtin_env(char **args, char ***env)
 {
     if (args[1]) {
-        write(2, "env: Too many arguments.\n", 26);
+        write(2, ENV_TOO_MANY_ARGS_MSG, sizeof(ENV_TOO_MANY_ARGS_MSG));
         return 1;
     }
     for (int i = 0; (*env)[i]; i++) {
@@ -68,7 +68,7 @@ static int add_env_var(char ***env, char *var, char *value, int count)
     char **new_env = malloc(sizeof(char *) * (count + 2));
 
     if (!new_env) {
-        write(2, "Error: malloc failed\n", 23);
+        write(2, MALLOC_ERR_MSG, sizeof(MALLOC_ERR_MSG));
         exit(84);
     }
     for (int j = 0; j < count; j++)
@@ -87,7 +87,7 @@ int builtin_setenv(char **args, char ***env)
     if (!args[1])
         return builtin_env(args, env);
     if (args[2] && args[3]) {
-        write(2, "setenv: Too many arguments.\n", 27);
+        write(2, SET_TOO_MANY_ARGS_MSG, sizeof(SET_TOO_MANY_ARGS_MSG));
         return 1;
     }
     count = update_env_var(env, args[1], args[2], my_strlen(args[1]));
@@ -111,7 +111,7 @@ int builtin_unsetenv(char **args, char ***env)
     int i = 0;
 
     if (!args[1]) {
-        write(2, "unsetenv: Too few arguments.\n", 28);
+        write(2, UNSET_TOO_MANY_ARGS_MSG, sizeof(UNSET_TOO_MANY_ARGS_MSG));
         return 1;
     }
     len = my_strlen(args[1]);

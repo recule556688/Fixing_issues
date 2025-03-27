@@ -14,7 +14,7 @@ static char **allocate_env_copy(int count)
     char **env_copy = malloc(sizeof(char *) * (count + 1));
 
     if (!env_copy) {
-        write(2, "Error: malloc failed\n", 23);
+        write(2, MALLOC_ERR_MSG, sizeof(MALLOC_ERR_MSG));
         exit(84);
     }
     return env_copy;
@@ -39,7 +39,7 @@ static char *allocate_var_str(int len_var, int len_val)
     char *str = malloc(len_var + len_val + 2);
 
     if (!str) {
-        write(2, "Error: malloc failed\n", 23);
+        write(2, MALLOC_ERR_MSG, sizeof(MALLOC_ERR_MSG));
         exit(84);
     }
     return str;
