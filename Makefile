@@ -14,7 +14,11 @@ SRC = src/minishell.c \
       src/string_utils.c \
       src/string_compare.c \
       src/parser.c \
-      src/exec_pipeline.c
+      src/exec_pipeline.c \
+      src/parser_utils.c \
+      src/parser_utils_more.c \
+      src/pipeline_utils.c \
+      src/execute_utils.c
 
 OBJ = $(SRC:.c=.o)
 
@@ -25,14 +29,12 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
-	cp $(NAME) tester
 
 clean:
 	$(RM) $(OBJ)
 
 fclean: clean
 	$(RM) $(NAME)
-	$(RM) tester/$(NAME)
 
 re: fclean all
 

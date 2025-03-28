@@ -18,8 +18,6 @@ size_t my_strlen(const char *s)
     return i;
 }
 
-
-
 char *my_strdup(const char *s)
 {
     size_t len = my_strlen(s);

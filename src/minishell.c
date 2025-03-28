@@ -16,45 +16,6 @@ const builtin_cmd_t BUILTINS[] = {
     {NULL, NULL}
 };
 
-static int execute_builtin(char **args, shell_t *shell)
-{
-    for (int i = 0; BUILTINS[i].name; i++) {
-        if (my_strcmp(args[0], BUILTINS[i].name) == 0)
-            return BUILTINS[i].func(args, &shell->env);
-    }
-    return -1;
-}
-
-static void handle_child_process(char **args, shell_t *shell)
-{
-    if (execute_external(args, shell->env) == -1) {
-        write(2, args[0], my_strlen(args[0]));
-        write(2, ": Command not found.\n", 21);
-        exit(1);
-    }
-}
-
-// This function is kept for backward compatibility, used for simple commands
-static void process_command(char **args, shell_t *shell)
-{
-    pid_t pid;
-    int status;
-
-    if (execute_builtin(args, shell) != -1)
-        return;
-    pid = fork();
-    if (pid < 0) {
-        perror("fork");
-    }
-    if (pid == 0) {
-        handle_child_process(args, shell);
-    } else {
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status))
-            shell->last_exit_status = WEXITSTATUS(status);
-    }
-}
-
 static void process_input_line(char *line, shell_t *shell)
 {
     command_list_t *cmd_list;
@@ -83,7 +44,7 @@ static void run_shell_loop(shell_t *shell)
 
     while (1) {
         if (isatty(0))
-            write(1, "$> ", 3);
+            write(1, SHELL_PROMPT, sizeof(SHELL_PROMPT) - 1);
         read_chars = getline(&line, &len, stdin);
         if (read_chars == -1) {
             free(line);

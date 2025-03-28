@@ -19,14 +19,23 @@
     #include <sys/types.h>
     #include <string.h>
     #include <stdbool.h>
+    #include <limits.h>
 
-    #define MAX_TOKENS 128
+    #ifndef ARG_MAX
+        #define ARG_MAX 131072  /* Fallback if ARG_MAX is not defined */
+    #endif
+    #define MAX_COMMAND_TOKENS ((ARG_MAX / 128) < 128 ? 128 : (ARG_MAX / 128))
+
     #define MALLOC_ERR_MSG "Error: malloc failed\n"
     #define COMMAND_NOT_FOUND_MSG ": Command not found.\n"
     #define CD_NO_HOME_MSG "cd: No HOME variable set.\n"
     #define ENV_TOO_MANY_ARGS_MSG "env: Too many arguments.\n"
     #define SET_TOO_MANY_ARGS_MSG "setenv: Too many arguments.\n"
     #define UNSET_TOO_MANY_ARGS_MSG "unsetenv: Too many arguments.\n"
+    #define REDIR_ERR_MSG "Syntax error: missing filename after redirection\n"
+    #define NO_SUCH_FILE_MSG ": No such file or directory.\n"
+    #define SHELL_PROMPT "$> "
+
 /* String structure */
 typedef struct string_s {
     char *str;
@@ -85,6 +94,28 @@ int builtin_exit(char **args, char ***env);
 /* Parsing functions */
 command_list_t *parse_input(char *input);
 void free_command_list(command_list_t *list);
+void free_command(command_t *cmd);
+
+/* Parser utilities */
+bool is_redirect_token(const char *token);
+command_t *create_command(void);
+command_list_t *create_command_list(void);
+char **tokenize_input(char *input);
+
+/* Pipeline utilities */
+int handle_input_redirection(command_t *cmd);
+int handle_output_redirection(command_t *cmd);
+int backup_fd(int new_fd, int original_fd);
+void restore_fd(int backup_fd, int original_fd);
+void close_if_not_default(int input_fd, int output_fd);
+
+/* Execute utilities */
+int run_redirected_builtin(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd);
+int handle_builtin(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd);
+void run_child_task(command_t *cmd, shell_t *shell,
+    int input_fd, int output_fd);
 
 /* Command execution */
 int execute_external(char **args, char **env);
