@@ -28,6 +28,9 @@ typedef struct edge {
 typedef struct labyrinth {
     node_t *root;
     node_t *tail;
+    //Jordan says these would be useful for making parsing easier.
+    //node_t *start;
+    //node_t *end;
     int robots;
 } labyrinth_t;
 

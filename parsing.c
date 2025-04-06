@@ -115,7 +115,9 @@ void parse_room_or_tunnel(char *buffer, labyrinth_t *res, int room_status_flag)
     char *b = detect_sep(buffer, '-');
     int x;
     int y;
-    //update start/end pointer based on room_status_flag
+    //change res to maze or laby or something.
+    
+    //parse a tunnel or room based on whether maze/laby has its end pointer set.
     if (b) {
         x = my_atoi(buffer);
         y = my_atoi(b);
@@ -130,6 +132,7 @@ void parse_room_or_tunnel(char *buffer, labyrinth_t *res, int room_status_flag)
             return;
         y = my_atoi(b);
         make_room(res, buffer, x, y);
+        //update start/end pointer of maze/laby based on room_status_flag
     }
 }
 
