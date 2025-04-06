@@ -22,6 +22,8 @@ char *detect_sep(char *str, char sep)
     return NULL;
 }
 
+//O(n) lookup, but this isn't terrible.
+//Bonus: make BST for lookups to make this more efficient haha O(log(n)) lookup
 node_t *find_room(labyrinth_t *rs, char *id)
 {
     node_t *t = rs->root;
@@ -107,12 +109,13 @@ void make_room(labyrinth_t *res, char *id, int x, int y)
     res->tail = room;
 }
 
+//TODO: fix something if 
 void parse_room_or_tunnel(char *buffer, labyrinth_t *res, int room_status_flag)
 {
     char *b = detect_sep(buffer, '-');
     int x;
     int y;
-
+    //update start/end pointer based on room_status_flag
     if (b) {
         x = my_atoi(buffer);
         y = my_atoi(b);
@@ -133,28 +136,58 @@ void parse_room_or_tunnel(char *buffer, labyrinth_t *res, int room_status_flag)
 void parse_hashtag(char *buffer, labyrinth_t *res, int *room_status_flag)
 {
     if (buffer[1] != '#') {
-        return;
+        return; //We're just reading a comment
     }
     if (my_strcmp(buffer + 2, "start") == 0) {
-        *room_status_flag = 1;
+        *room_status_flag = 1; //WHAT IF START HAS ALREADY APPEARED?
     } else if (my_strcpm(buffer + 2, "end") == 0) {
-        *room_status_flag = -1;
+        *room_status_flag = -1; //WHAT IF END HAS ALREADY APPEARED?
     }
+
+    //Handle these cases, have a different status flag if room_status_flag already 1/-1 or if start/end room already defined
+
+    //store the start/end room in the struct for labyrinth/maze? this makes returning an error easier...
+
+
+    //check more things. maybe to make it easier we can add pointers to them in the struct.
+    //And use a nullcheck to verify for them.
+    //Also we want handle cases like this:
+    //##start
+    //##start
+    //or 
+    //##start
+    //#haha 
 }
 
 labyrinth_t *read_labyrinth(void)
 {
     labyrinth_t *res = (labyrinth_t *)malloc(sizeof(labyrinth_t *));
-    node_t *nd;
-    edge_t *s;
+    //node_t *nd;
+    //edge_t *s;
     char buffer[MAX_BUFFER];
     int n = MAX_BUFFER;
-    int room_status_flag = 0;
+    int room_status_flag = 0; //Used to tell us if we're going to read the start/end...
 
     res->root = NULL;
     res->tail = NULL;
+
+    //Read the number of robots
     getline(&buffer, &n, stdin);
     res->robots = my_atoi(buffer);
+
+
+    //Steps: 
+
+    //Read in all rooms with their coordinates....
+    //For each room and each edge/tunnel, create an edge for both ends of the tunnel/edge.
+    //Add a copy of the edge to both linked lists. 
+    //While not the best design, this will make the adjacency matrix printing easier.
+
+
+    //Read rooms and tunnels, or potentially ##start/##next.
+    // 
+
+    //If bad room_status_flag, stop...
     while (getline(&buffer, &n, stdin)) {
         if (buffer[0] != '#') {
             parse_room_or_tunnel(buffer, res, room_status_flag);
@@ -163,4 +196,28 @@ labyrinth_t *read_labyrinth(void)
         }
     }
     return res;
+}
+void free_labyrinth(labyrinth_t *maze){
+    //TODO other stuff to free it...
+    free(maze);
+}
+void print_labyrinth(labyrinth_t *maze){
+    //Print the adjacency matrix of the graph!
+    //print a line with the names of all nodes (go through the list...)
+    //then, for each node, print a single line, with the name of the node and the distance to each node adjacent to it.
+
+    //Example: 
+    
+    //Start (0,0) - A (1,0) - End  (2,0)
+    
+
+    //       Start  A   End
+    // Start -    1.0   -  
+    // A     1.0   -    1.0
+    // End   -    1.0    - 
+}
+
+int main(int argc, char **argv){
+    labyrinth_t *maze = read_labyrinth();
+    print_labyrinth(maze);
 }

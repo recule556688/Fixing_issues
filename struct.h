@@ -8,11 +8,13 @@
 #ifndef INCLUDED_STRUCT_H
     #define INCLUDED_STRUCT_H
 
+
+
 typedef struct node {
-    int x;
+    int x; //Position of node
     int y;
-    char *id;
-    edge_t *root_edge;
+    char *id; //Name of node...
+    edge_t *root_edge; //A linked linked list of edges connecting this node to others?
     node_t *next_node;
 } node_t;
 
