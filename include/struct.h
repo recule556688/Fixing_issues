@@ -34,4 +34,11 @@ typedef struct labyrinth {
     int robots;        /* Number of robots */
 } labyrinth_t;
 
+typedef struct {
+    node_t *node;
+    float dist;
+    node_t *prev;
+    bool visited;
+} dijkstra_node_t;
+
 #endif

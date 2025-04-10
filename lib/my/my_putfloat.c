@@ -5,8 +5,7 @@
 ** Write a float to stdout with precision
 */
 
-void my_putchar(char c);
-void my_putstr(const char *str);
+#include "my.h"
 
 static void put_number(int n)
 {
@@ -31,4 +30,4 @@ void my_putfloat(float num, int precision)
         decimal_part *= 10;
         my_putchar((int)decimal_part % 10 + '0');
     }
-} 
+}

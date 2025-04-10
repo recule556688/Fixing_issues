@@ -37,4 +37,4 @@ void free_labyrinth(labyrinth_t *maze)
         return;
     free_nodes(maze->root);
     free(maze);
-} 
+}

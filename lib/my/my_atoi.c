@@ -24,4 +24,4 @@ int my_atoi(const char *str)
         i++;
     }
     return (result * sign);
-} 
+}

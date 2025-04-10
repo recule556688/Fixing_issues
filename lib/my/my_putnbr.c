@@ -6,8 +6,7 @@
 */
 
 #include <unistd.h>
-
-void my_putchar(char c);
+#include "my.h"
 
 void my_putnbr(int nb)
 {
@@ -19,4 +18,4 @@ void my_putnbr(int nb)
         my_putnbr(nb / 10);
     }
     my_putchar((nb % 10) + '0');
-} 
+}

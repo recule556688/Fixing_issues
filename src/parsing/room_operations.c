@@ -77,11 +77,9 @@ static void add_room_to_labyrinth(labyrinth_t *maze, node_t *room){
 node_t *make_room(labyrinth_t *res, char *id, int x, int y)
 {
     node_t *room = malloc(sizeof(node_t));
-    
-    if (!room){
-        my_putstr("Error: Failed to create room\n");
+
+    if (!room)
         return NULL;
-    }
     room->id = my_strdup(id);
     if (!room->id) {
         free(room);
@@ -92,4 +90,4 @@ node_t *make_room(labyrinth_t *res, char *id, int x, int y)
     room->y = y;
     add_room_to_labyrinth(res, room);
     return room;
-} 
+}
