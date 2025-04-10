@@ -4,12 +4,17 @@
 ** File description:
 ** Header file for maze solver
 */
-
 #ifndef MAZE_H_
     #define MAZE_H_
 
     #include <stdlib.h>
     #include "my.h"
+
+    typedef enum ROOM_PARSING_STATUS {
+        NONE, 
+        START,
+        END
+    } ROOM_PARSING_STATUS;
 
     typedef struct edge edge_t;
     typedef struct node node_t;

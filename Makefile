@@ -18,7 +18,7 @@ SRC	=	src/main.c		\
 
 OBJ	=	$(SRC:.c=.o)
 
-CFLAGS	=	-Wall -Wextra -I./include
+CFLAGS	=	-Wall -Wextra -I./include -g
 
 LDFLAGS	=	-L./lib -lmy
 
