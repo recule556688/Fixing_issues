@@ -18,9 +18,9 @@ SRC	=	src/main.c		\
 
 OBJ	=	$(SRC:.c=.o)
 
-CFLAGS	=	-Wall -Wextra -I./include -g
+CFLAGS	=	-Wall -Wextra -I./include -g -fsanitize=address
 
-LDFLAGS	=	-L./lib -lmy
+LDFLAGS	=	-L./lib -lmy -fsanitize=address
 
 all:	$(NAME)
 
