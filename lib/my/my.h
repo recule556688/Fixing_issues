@@ -17,4 +17,4 @@ void my_putfloat(float num, int precision);
 float my_sqrt(float nb);
 void my_putnbr(int nb);
 
-#endif 
+#endif

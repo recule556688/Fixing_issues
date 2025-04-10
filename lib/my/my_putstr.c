@@ -5,7 +5,7 @@
 ** Write a string to stdout
 */
 
-void my_putchar(char c);
+#include "my.h"
 
 void my_putstr(const char *str)
 {
@@ -15,4 +15,4 @@ void my_putstr(const char *str)
         my_putchar(*str);
         str++;
     }
-} 
+}
