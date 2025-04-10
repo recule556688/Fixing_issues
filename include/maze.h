@@ -9,36 +9,14 @@
 
 #include <stdlib.h>
 #include "my.h"
+#include "struct.h"
 
 typedef enum ROOM_PARSING_STATUS {
     NONE,
     START,
     END
-} ROOM_PARSING_STATUS_t;
+} ROOM_PARSING_STATUS;
 
-typedef struct edge edge_t;
-typedef struct node node_t;
-typedef struct labyrinth labyrinth_t;
-struct edge {
-    node_t *a;         /* Source node */
-    node_t *b;         /* Destination node */
-    float length;      /* Edge length/distance */
-    edge_t *next_edge;
-};
-struct node {
-    int x;              /* Position coordinates */
-    int y;
-    char *id;          /* Room identifier */
-    edge_t *root_edge; /* Linked list of edges connecting to other nodes */
-    node_t *next_node;
-};
-struct labyrinth {
-    node_t *root;      /* First room in the labyrinth */
-    node_t *tail;      /* Last room added */
-    node_t *start;     /* Starting room */
-    node_t *end;       /* End/goal room */
-    int robots;        /* Number of robots */
-};
 /* Function prototypes */
 labyrinth_t *read_labyrinth(void);
 void print_labyrinth(labyrinth_t *maze);

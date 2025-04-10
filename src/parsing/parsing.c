@@ -66,6 +66,7 @@ static int parse_room_coordinates(int *x, int *y, char *current_token){
         return 84;
     }
     *y = my_atoi(current_token);
+    return 0;
 }
 static int parse_room(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag){
     int x, y;
