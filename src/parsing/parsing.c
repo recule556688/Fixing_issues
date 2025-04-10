@@ -46,101 +46,117 @@ static int parse_hashtag(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS *r
     
     return 0;
 }
-
-static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag)
-{
-    char *current_line = detect_sep(buffer, '-');
+static void print_room_coordinates(int x, int y){
+    my_putstr("Room coordinates: X=");
+    my_putnbr(x);
+    my_putstr(", Y=");
+    my_putnbr(y);
+    my_putchar('\n');
+}
+static int parse_room_coordinates(int *x, int *y, char *current_token){
+    current_token = detect_sep(current_token, ' ');
+    if (!current_token) {
+        my_putstr("Error: Missing X coordinate\n");
+        return 84;
+    }
+    *x = my_atoi(current_token);
+    current_token = detect_sep(current_token, ' ');
+    if (!current_token) {
+        my_putstr("Error: Missing Y coordinate\n");
+        return 84;
+    }
+    *y = my_atoi(current_token);
+}
+static int parse_room(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag){
     int x, y;
     node_t *new_room;
 
-    if (current_line) {
-        if(!maze->end){
-            my_putstr("GTFO - should not read tunnels before the ending room has been read."); //DO something like this...
-            return 84;
-        }
-        my_putstr("Detected tunnel: ");
-        my_putstr(buffer);
-        my_putstr(" to ");
-        my_putstr(current_line);
-        my_putchar('\n');
+    my_putstr("Detected room: ");
+    my_putstr(buffer);
+    my_putchar('\n');
 
-        make_tunnel(maze, buffer, current_line);
-        return 0;
-    }
-    else{
-        // if(maze->end){
-        //     my_putstr("GTFO - should not read rooms after the ending room has been read."); //Do something like this...
-        //     return 84;
-        // }
-        my_putstr("Detected room: ");
-        my_putstr(buffer);
-        my_putchar('\n');
+    if(parse_room_coordinates(&x, &y, buffer) == 84)
+        return 84;
+    print_room_coordinates(x, y);
 
-        current_line = detect_sep(buffer, ' ');
-        if (!current_line) {
-            my_putstr("Error: Missing X coordinate\n");
-            return 84;
-        }
-        x = my_atoi(current_line);
-        current_line = detect_sep(current_line, ' ');
-        if (!current_line) {
-            my_putstr("Error: Missing Y coordinate\n");
-            return 84;
-        }
-        y = my_atoi(current_line);
-        my_putstr("Room coordinates: X=");
-        my_putchar('0' + x);
-        my_putstr(", Y=");
-        my_putchar('0' + y);
-        my_putchar('\n');
-        new_room = make_room(maze, buffer, x, y);
-        if (!new_room) {
-            my_putstr("Error: Failed to create room\n");
-            return 84;
-        }
-        if (room_status_flag == START) {
-            my_putstr("Set as start room\n");
-            maze->start = new_room;
-        } else if (room_status_flag == END) {
-            my_putstr("Set as end room\n");
-            maze->end = new_room;
-        }
+    new_room = make_room(maze, buffer, x, y);
+    if (!new_room)
+        return 84;
+    if (room_status_flag == START) {
+        my_putstr("Set as start room\n");
+        maze->start = new_room;
+    } else if (room_status_flag == END) {
+        my_putstr("Set as end room\n");
+        maze->end = new_room;
     }
     return 0;
 }
-labyrinth_t *read_labyrinth(void)
-{
-    labyrinth_t *maze = malloc(sizeof(labyrinth_t));
-    char *buffer = NULL;
-    size_t bufsize = 0;
-    ssize_t read;
-    ROOM_PARSING_STATUS room_status_flag = NONE;
-    int ret;
+static int parse_tunnel(char *buffer, char *current_line, labyrinth_t *maze){
+    if(!maze->end || !maze->start){
+        my_putstr("GTFO - should not read tunnels before the starting/ending room has been read."); //DO something like this...
+        return 84;
+    }
+    my_putstr("Detected tunnel: ");
+    my_putstr(buffer);
+    my_putstr(" to ");
+    my_putstr(current_line);
+    my_putchar('\n');
 
+    make_tunnel(maze, buffer, current_line);
+    return 0;
+}
+static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag)
+{
+    char *current_line = detect_sep(buffer, '-');
+
+    if (current_line)
+        return parse_tunnel(buffer, current_line, maze);
+    else
+        return parse_room(buffer, maze, room_status_flag);
+}
+static labyrinth_t *create_empty_labyrinth(void){
+    labyrinth_t *maze = malloc(sizeof(labyrinth_t));
     if (!maze)
         return NULL;
     maze->root = NULL;
     maze->tail = NULL;
     maze->start = NULL;
     maze->end = NULL;
+    return maze;
+}
 
-    read = getline(&buffer, &bufsize, stdin);
+static void trim_line(char *line, ssize_t read){
+    if (line[read - 1] == '\n')
+        line[read - 1] = '\0';
+}
+
+static int init_labyrinth_with_num_robots(char *buffer, size_t *bufsize, labyrinth_t *maze){
+    ssize_t read = getline(&buffer, bufsize, stdin);
+
     if (read == -1) {
         free(maze);
-        return NULL;
+        return 0;
     }
-
-    if (buffer[read - 1] == '\n')
-        buffer[read - 1] = '\0';
-
+    trim_line(buffer, read);
     maze->robots = my_atoi(buffer);
+    return 1;
+}
 
+labyrinth_t *read_labyrinth(void)
+{
+    labyrinth_t *maze = create_empty_labyrinth();
+    char *buffer = NULL;
+    size_t bufsize = 0;
+    ssize_t read;
+    ROOM_PARSING_STATUS room_status_flag = NONE;
+    int ret;
+
+    if (!maze || !init_labyrinth_with_num_robots(buffer, &bufsize, maze))
+        return NULL;
     while ((read = getline(&buffer, &bufsize, stdin)) != -1) {
         //we've just read in a line.
         //Remove newline from end of line.
-        if (buffer[read - 1] == '\n')
-            buffer[read - 1] = '\0';
-
+        trim_line(buffer, read);
         if (buffer[0] == '#') { //we're about to read something important...
             ret = parse_hashtag(buffer, maze, &room_status_flag);
         } else {
@@ -148,7 +164,6 @@ labyrinth_t *read_labyrinth(void)
             /* Only reset room_status_flag after we've used it for a room */
             room_status_flag = NONE;
         }
-
         if (ret == 84) {
             free_labyrinth(maze);
             free(buffer);
