@@ -5,7 +5,7 @@
 ** Room operations
 */
 
-#include "../include/maze.h"
+#include "../../include/maze.h"
 
 node_t *find_room(labyrinth_t *rs, char *id)
 {
@@ -35,9 +35,11 @@ static void add_edge(node_t *r, edge_t *c)
     e0->next_edge = c;
 }
 
-static edge_t *create_and_add_tunnel(node_t *a, node_t *b, float dist){
+static edge_t *create_and_add_tunnel(node_t *a, node_t *b, float dist)
+{
     edge_t *e = malloc(sizeof(edge_t));
-    if(!e){
+
+    if (!e){
         return NULL;
     }
     e->a = a;
@@ -47,25 +49,27 @@ static edge_t *create_and_add_tunnel(node_t *a, node_t *b, float dist){
     add_edge(a, e);
     return e;
 }
+
 int make_tunnel(labyrinth_t *res, char *x, char *y)
 {
     node_t *a = find_room(res, x);
     node_t *b = find_room(res, y);
-    float dx, dy, d;
+    float dx = 0;
+    float dy = 0;
+    float d = 0;
 
     if (!a || !b)
-        return 84; //TODO error?
+        return 84;
     dx = b->x - a->x;
     dy = b->y - a->y;
     d = my_sqrt(dx * dx + dy * dy);
-
-    if(!create_and_add_tunnel(a, b, d) || 
-        !create_and_add_tunnel(b, a, d))
-        return 84; 
-    else return 0;
+    if (!create_and_add_tunnel(a, b, d) || !create_and_add_tunnel(b, a, d))
+        return 84;
+    return 0;
 }
 
-static void add_room_to_labyrinth(labyrinth_t *maze, node_t *room){
+static void add_room_to_labyrinth(labyrinth_t *maze, node_t *room)
+{
     room->root_edge = NULL;
     room->next_node = NULL;
     if (maze->tail)
@@ -74,6 +78,7 @@ static void add_room_to_labyrinth(labyrinth_t *maze, node_t *room){
         maze->root = room;
     maze->tail = room;
 }
+
 node_t *make_room(labyrinth_t *res, char *id, int x, int y)
 {
     node_t *room = malloc(sizeof(node_t));

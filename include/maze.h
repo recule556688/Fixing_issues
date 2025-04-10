@@ -5,17 +5,17 @@
 ** Header file for maze solver
 */
 #ifndef MAZE_H_
-#define MAZE_H_
+    #define MAZE_H_
 
-#include <stdlib.h>
-#include "my.h"
-#include "struct.h"
+    #include <stdlib.h>
+    #include "my.h"
+    #include "struct.h"
 
 typedef enum ROOM_PARSING_STATUS {
     NONE,
     START,
     END
-} ROOM_PARSING_STATUS;
+} ROOM_PARSING_STATUS_t;
 
 /* Function prototypes */
 labyrinth_t *read_labyrinth(void);

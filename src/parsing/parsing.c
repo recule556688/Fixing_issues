@@ -8,7 +8,7 @@
 #include "../include/maze.h"
 #include <stdio.h>
 
-static int parse_hashtag(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS *room_status_flag)
+static int parse_hashtag(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS_t *room_status_flag)
 {
     my_putstr("Parsing hashtag: ");
     my_putstr(buffer);
@@ -66,7 +66,7 @@ static int parse_room_coordinates(int *x, int *y, char *current_token){
     *y = my_atoi(current_token);
     return 0;
 }
-static int parse_room(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag){
+static int parse_room(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS_t room_status_flag){
     int x, y;
     node_t *new_room;
 
@@ -104,7 +104,7 @@ static int parse_tunnel(char *buffer, char *current_line, labyrinth_t *maze){
     make_tunnel(maze, buffer, current_line);
     return 0;
 }
-static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag)
+static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS_t room_status_flag)
 {
     char *current_line = detect_sep(buffer, '-');
 
@@ -147,7 +147,7 @@ labyrinth_t *read_labyrinth(void)
     char *buffer = NULL;
     size_t bufsize = 0;
     ssize_t read;
-    ROOM_PARSING_STATUS room_status_flag = NONE;
+    ROOM_PARSING_STATUS_t room_status_flag = NONE;
     int ret;
 
     if (!maze || !init_labyrinth_with_num_robots(buffer, &bufsize, maze))
