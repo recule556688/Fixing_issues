@@ -62,4 +62,4 @@ void print_labyrinth(labyrinth_t *maze)
         my_putchar('\n');
         row = row->next_node;
     }
-} 
+}

@@ -39,17 +39,13 @@ void make_tunnel(labyrinth_t *res, char *x, char *y)
 {
     node_t *a = find_room(res, x);
     node_t *b = find_room(res, y);
-    float dx, dy, d;
-    edge_t *e1, *e2;
+    edge_t *e1 = malloc(sizeof(edge_t));
+    edge_t *e2 = malloc(sizeof(edge_t));
+    float dx = b->x - a->x;
+    float dy = b->y - a->y;
+    float d = my_sqrt(dx * dx + dy * dy);
 
-    if (!a || !b)
-        return;
-    dx = b->x - a->x;
-    dy = b->y - a->y;
-    d = my_sqrt(dx * dx + dy * dy);
-    e1 = malloc(sizeof(edge_t));
-    e2 = malloc(sizeof(edge_t));
-    if (!e1 || !e2)
+    if (!a || !b || !e1 || !e2)
         return;
     e1->a = a;
     e1->b = b;
@@ -66,7 +62,7 @@ void make_tunnel(labyrinth_t *res, char *x, char *y)
 node_t *make_room(labyrinth_t *res, char *id, int x, int y)
 {
     node_t *room = malloc(sizeof(node_t));
-    
+
     if (!room)
         return NULL;
     room->id = my_strdup(id);
@@ -85,4 +81,4 @@ node_t *make_room(labyrinth_t *res, char *id, int x, int y)
     }
     res->tail = room;
     return room;
-} 
+}

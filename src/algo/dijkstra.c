@@ -5,16 +5,10 @@
 ** Implementation of Dijkstra's algorithm for pathfinding
 */
 
+#include "../../include/struct.h"
 #include "../../include/algo.h"
 #include <stdlib.h>
 #include <float.h>
-
-typedef struct {
-    node_t *node;
-    float dist;
-    node_t *prev;
-    bool visited;
-} dijkstra_node_t;
 
 static dijkstra_node_t *find_min_distance_node(dijkstra_node_t **nodes, int count)
 {
@@ -69,7 +63,7 @@ static dijkstra_node_t **initialize_nodes(labyrinth_t *maze, node_t *start)
     return nodes;
 }
 
-static dijkstra_node_t *find_node_by_ptr(dijkstra_node_t **nodes, 
+static dijkstra_node_t *find_node_by_ptr(dijkstra_node_t **nodes,
     int count, node_t *ptr)
 {
     if (!nodes || !ptr)
@@ -96,7 +90,7 @@ void reverse_path(path_t *path)
     path->head = prev;
 }
 
-static path_t *build_path(dijkstra_node_t **nodes, int count, 
+static path_t *build_path(dijkstra_node_t **nodes, int count,
     node_t *start, node_t *end)
 {
     path_t *path = create_path();
@@ -110,7 +104,6 @@ static path_t *build_path(dijkstra_node_t **nodes, int count,
         free_path(path);
         return NULL;
     }
-
     while (current && current->node) {
         path_node_t *new_node = malloc(sizeof(path_node_t));
         if (!new_node) {
@@ -121,17 +114,14 @@ static path_t *build_path(dijkstra_node_t **nodes, int count,
         new_node->next = path->head;
         path->head = new_node;
         path->length++;
-
         if (current->node == start)
             break;
         current = find_node_by_ptr(nodes, count, current->prev);
     }
-
     if (!current || current->node != start) {
         free_path(path);
         return NULL;
     }
-
     return path;
 }
 
@@ -158,11 +148,9 @@ path_t *find_shortest_path(labyrinth_t *maze, node_t *start, node_t *end)
     nodes = initialize_nodes(maze, start);
     if (!nodes)
         return NULL;
-
     while ((current = find_min_distance_node(nodes, node_count))) {
         current->visited = true;
         edge_t *edge = current->node->root_edge;
-
         while (edge) {
             dijkstra_node_t *neighbor = find_node_by_ptr(nodes, node_count, edge->b);
             if (neighbor && !neighbor->visited) {
@@ -175,7 +163,6 @@ path_t *find_shortest_path(labyrinth_t *maze, node_t *start, node_t *end)
             edge = edge->next_edge;
         }
     }
-
     path = build_path(nodes, node_count, start, end);
     free_dijkstra_nodes(nodes, node_count);
     return path;
@@ -184,6 +171,7 @@ path_t *find_shortest_path(labyrinth_t *maze, node_t *start, node_t *end)
 path_t *create_path(void)
 {
     path_t *path = malloc(sizeof(path_t));
+
     if (!path)
         return NULL;
     path->head = NULL;
@@ -197,11 +185,9 @@ void add_to_path(path_t *path, node_t *room)
 
     if (!path || !room)
         return;
-
     new_node = malloc(sizeof(path_node_t));
     if (!new_node)
         return;
-
     new_node->room = room;
     new_node->next = path->head;
     path->head = new_node;
@@ -212,7 +198,6 @@ void free_path(path_t *path)
 {
     if (!path)
         return;
-
     path_node_t *current = path->head;
     while (current) {
         path_node_t *next = current->next;
@@ -228,7 +213,6 @@ void print_path(path_t *path)
         my_putstr("Empty path\n");
         return;
     }
-
     my_putstr("Path: ");
     path_node_t *current = path->head;
     while (current) {
