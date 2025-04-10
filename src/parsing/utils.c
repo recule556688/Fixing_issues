@@ -36,4 +36,4 @@ float my_sqrt(float nb)
         t2 = t * t;
     }
     return t;
-} 
+}

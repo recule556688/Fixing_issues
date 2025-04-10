@@ -11,7 +11,7 @@
     #include "my.h"
 
     typedef enum ROOM_PARSING_STATUS {
-        NONE, 
+        NONE,
         START,
         END
     } ROOM_PARSING_STATUS;

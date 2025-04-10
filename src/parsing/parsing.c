@@ -49,11 +49,11 @@ static int parse_hashtag(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS *r
 
 static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS room_status_flag)
 {
-    char *b = detect_sep(buffer, '-'); //TODO rename b to something like current_line or idk.
+    char *current_line = detect_sep(buffer, '-');
     int x, y;
     node_t *new_room;
 
-    if (b) {
+    if (current_line) {
         if(!maze->end){
             my_putstr("GTFO - should not read tunnels before the ending room has been read."); //DO something like this...
             return 84;
@@ -61,47 +61,43 @@ static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_ST
         my_putstr("Detected tunnel: ");
         my_putstr(buffer);
         my_putstr(" to ");
-        my_putstr(b);
+        my_putstr(current_line);
         my_putchar('\n');
-        
-        make_tunnel(maze, buffer, b);
+
+        make_tunnel(maze, buffer, current_line);
         return 0;
     }
     else{
-        if(maze->end){
-            my_putstr("GTFO - should not read rooms after the ending room has been read."); //Do something like this...
-            return 84;
-        }
+        // if(maze->end){
+        //     my_putstr("GTFO - should not read rooms after the ending room has been read."); //Do something like this...
+        //     return 84;
+        // }
         my_putstr("Detected room: ");
         my_putstr(buffer);
         my_putchar('\n');
-        
-        b = detect_sep(buffer, ' ');
-        if (!b) {
+
+        current_line = detect_sep(buffer, ' ');
+        if (!current_line) {
             my_putstr("Error: Missing X coordinate\n");
             return 84;
         }
-        
-        x = my_atoi(b);
-        b = detect_sep(b, ' ');
-        if (!b) {
+        x = my_atoi(current_line);
+        current_line = detect_sep(current_line, ' ');
+        if (!current_line) {
             my_putstr("Error: Missing Y coordinate\n");
             return 84;
         }
-        
-        y = my_atoi(b);
+        y = my_atoi(current_line);
         my_putstr("Room coordinates: X=");
         my_putchar('0' + x);
         my_putstr(", Y=");
         my_putchar('0' + y);
         my_putchar('\n');
-        
         new_room = make_room(maze, buffer, x, y);
         if (!new_room) {
             my_putstr("Error: Failed to create room\n");
             return 84;
         }
-        
         if (room_status_flag == START) {
             my_putstr("Set as start room\n");
             maze->start = new_room;
@@ -127,24 +123,24 @@ labyrinth_t *read_labyrinth(void)
     maze->tail = NULL;
     maze->start = NULL;
     maze->end = NULL;
-    
+
     read = getline(&buffer, &bufsize, stdin);
     if (read == -1) {
         free(maze);
         return NULL;
     }
-    
+
     if (buffer[read - 1] == '\n')
         buffer[read - 1] = '\0';
-    
+
     maze->robots = my_atoi(buffer);
-    
+
     while ((read = getline(&buffer, &bufsize, stdin)) != -1) {
         //we've just read in a line.
         //Remove newline from end of line.
         if (buffer[read - 1] == '\n')
             buffer[read - 1] = '\0';
-        
+
         if (buffer[0] == '#') { //we're about to read something important...
             ret = parse_hashtag(buffer, maze, &room_status_flag);
         } else {
@@ -152,7 +148,7 @@ labyrinth_t *read_labyrinth(void)
             /* Only reset room_status_flag after we've used it for a room */
             room_status_flag = NONE;
         }
-        
+
         if (ret == 84) {
             free_labyrinth(maze);
             free(buffer);
@@ -160,11 +156,11 @@ labyrinth_t *read_labyrinth(void)
         }
     }
     free(buffer);
-    
+
     if (!maze->start || !maze->end) {
         free_labyrinth(maze);
         return NULL;
     }
-    
+
     return maze;
-} 
+}
