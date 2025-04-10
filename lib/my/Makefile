@@ -10,7 +10,8 @@ SRC	=	my_strcmp.c	\
 		my_atoi.c	\
 		my_putchar.c	\
 		my_putstr.c	\
-		my_putfloat.c
+		my_putfloat.c	\
+		my_putnbr.c
 
 OBJ	=	$(SRC:.c=.o)
 

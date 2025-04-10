@@ -39,18 +39,24 @@ void print_labyrinth(labyrinth_t *maze)
     node_t *col;
     float length;
 
+    if (!maze || !maze->root)
+        return;
+
     print_header(maze);
     while (row) {
         my_putstr(row->id);
         col = maze->root;
         while (col) {
+            my_putchar(' ');
             length = get_edge_length(row, col);
-            my_putchar(' ');
-            if (length < 0)
-                my_putchar('-');
-            else
+            if (length < 0) {
+                my_putstr("- ");
+            } else {
+                if (length < 10)
+                    my_putchar(' ');
                 my_putfloat(length, 1);
-            my_putchar(' ');
+                my_putchar(' ');
+            }
             col = col->next_node;
         }
         my_putchar('\n');

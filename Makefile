@@ -8,11 +8,13 @@
 NAME	=	maze
 
 SRC	=	src/main.c		\
-		src/parsing.c		\
-		src/room_operations.c	\
-		src/print.c		\
-		src/memory.c		\
-		src/utils.c
+		src/parsing/parsing.c		\
+		src/parsing/room_operations.c	\
+		src/parsing/print.c		\
+		src/parsing/memory.c		\
+		src/parsing/utils.c		\
+		src/algo/dijkstra.c		\
+		src/algo/robot_paths.c
 
 OBJ	=	$(SRC:.c=.o)
 
