@@ -24,8 +24,6 @@ static int parse_hashtag(char *buffer, labyrinth_t *maze, ROOM_PARSING_STATUS *r
     }
     if (my_strcmp(buffer + 2, "start") == 0) {
         my_putstr("Found ##start command\n");
-        //You're checking if either ##start already appeared on the previous line, or maze->start already defined.
-
         if (maze->start) {
             my_putstr("Error: Start room already defined\n");
             return 84;
