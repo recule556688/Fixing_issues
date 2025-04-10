@@ -8,35 +8,38 @@
 #include "../../include/algo.h"
 #include <stdlib.h>
 
-labyrinth_t *copy_labyrinth(labyrinth_t *original)
-{
-    labyrinth_t *copy = malloc(sizeof(labyrinth_t));
-    node_t *current;
-    node_t *new_current;
-    node_t **node_mapping;
+static int num_labyrinth_nodes(labyrinth_t *maze){
+    node_t *current = maze->root;
     int node_count = 0;
-    int i = 0;
 
-    if (!copy || !original)
-        return NULL;
-    current = original->root;
     while (current) {
         node_count++;
         current = current->next_node;
     }
+    return node_count;
+}
+
+labyrinth_t *copy_labyrinth(labyrinth_t *original)
+{
+    labyrinth_t *copy = create_empty_labyrinth();
+    node_t *current, *new_current;
+    node_t **node_mapping;
+    int i = 0;
+    int node_count;
+
+    if (!copy || !original)
+        return NULL;
+    node_count = num_labyrinth_nodes(original);
     node_mapping = malloc(sizeof(node_t *) * node_count * 2);
     if (!node_mapping) {
         free(copy);
         return NULL;
     }
     copy->robots = original->robots;
-    copy->root = NULL;
-    copy->tail = NULL;
-    copy->start = NULL;
-    copy->end = NULL;
+
     current = original->root;
     while (current) {
-        new_current = make_room(copy, current->id, current->x, current->y);
+        new_current = clone_room(copy, original, current);
         if (!new_current) {
             free_labyrinth(copy);
             free(node_mapping);
@@ -45,10 +48,6 @@ labyrinth_t *copy_labyrinth(labyrinth_t *original)
         node_mapping[i*2] = current;
         node_mapping[i*2+1] = new_current;
         i++;
-        if (current == original->start)
-            copy->start = new_current;
-        if (current == original->end)
-            copy->end = new_current;
         current = current->next_node;
     }
     for (i = 0; i < node_count; i++) {
@@ -109,10 +108,8 @@ path_t **find_robot_paths(labyrinth_t *maze)
 {
     path_t **paths;
     labyrinth_t *maze_copy;
-    int i;
-    node_t **node_mapping;
-    int node_count = 0;
-    node_t *current;
+    int i, node_count = 0;
+    node_t **node_mapping, *current;
 
     if (!maze || maze->robots <= 0)
         return NULL;

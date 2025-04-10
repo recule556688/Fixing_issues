@@ -113,7 +113,7 @@ static int parse_room_or_tunnel(char *buffer, labyrinth_t *maze, ROOM_PARSING_ST
     else
         return parse_room(buffer, maze, room_status_flag);
 }
-static labyrinth_t *create_empty_labyrinth(void){
+labyrinth_t *create_empty_labyrinth(void){
     labyrinth_t *maze = malloc(sizeof(labyrinth_t));
     if (!maze)
         return NULL;
