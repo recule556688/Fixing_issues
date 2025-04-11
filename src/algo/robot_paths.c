@@ -29,92 +29,120 @@ bool copy_nodes_to_mapping(labyrinth_t *copy, labyrinth_t *original,
     return true;
 }
 
+
+static int init_processing_data(labyrinth_t *maze, processing_data_t *data){
+    if(maze->robots <= 0){
+        return 0;
+    }
+    data->paths = malloc(sizeof(path_t *) * maze->robots);
+    if (!data->paths)
+        return 0;
+    data->current = maze->root;
+    while (data->current) {
+        data->node_count++;
+        data->current = data->current->next_node;
+    }
+    data->node_mapping = malloc(sizeof(node_t *) * data->node_count * 2);
+    if (!data->node_mapping) {
+        free(data->paths);
+        return 0;
+    }
+    return 1;
+}
+
+static path_t *init_empty_path(processing_data_t *data, int i){
+    path_t *newPath= create_path();
+    int j;
+    
+    if(!newPath){
+        free_path(data->temp_path);
+        free_labyrinth(data->maze_copy);
+        for (j = 0; j < i; j++)
+            free_path(data->paths[j]);
+        free(data->paths);
+        free(data->node_mapping);
+        return NULL;
+    }
+    return newPath;
+}
+
+int update_processing_data(processing_data_t *data, labyrinth_t *maze, int i){
+    data->maze_copy = copy_labyrinth(maze);
+    if (!data->maze_copy) {
+        for (int j = 0; j < i; j++)
+            free_path(data->paths[j]);
+        free(data->paths);
+        free(data->node_mapping);
+        return 0;
+    }
+    data->current = maze->root;
+    data->copy_current = data->maze_copy->root;
+    data->map_index = 0;
+    while (data->current && data->copy_current) {
+        data->node_mapping[data->map_index * 2] = data->copy_current;
+        data->node_mapping[data->map_index * 2 + 1] = data->current;
+        data->map_index++;
+        data->current = data->current->next_node;
+        data->copy_current = data->copy_current->next_node;
+    }
+    return 1;
+}
+
+static int advance_processing_data(processing_data_t *data, 
+    labyrinth_t *maze_copy, int i)
+{
+    data->temp_path = find_shortest_path(maze_copy, maze_copy->start, 
+        maze_copy->end);
+    if (!data->temp_path) {
+        free_labyrinth(data->maze_copy);
+        for (int j = 0; j < i; j++)
+            free_path(data->paths[j]);
+        free(data->paths);
+        free(data->node_mapping);
+        return 0;
+    }
+    data->paths[i] = init_empty_path(data, i);
+    if (!data->paths[i])
+        return 0;
+    data->current_node = data->temp_path->head;
+    return 1;
+}
+
+static void fix_processing_data(processing_data_t *data, int i){
+    data->current_node = data->temp_path->head;
+    while (data->current_node) {
+        data->original_node = NULL;
+        for (int j = 0; j < data->node_count; j++) {
+            if (data->node_mapping[j * 2] == data->current_node->room) {
+                data->original_node = data->node_mapping[j * 2 + 1];
+                break;
+            }
+        }
+        if (data->original_node)
+            add_to_path(data->paths[i], data->original_node);
+        data->current_node = data->current_node->next;
+    }
+    reverse_path(data->paths[i]);
+    free_path(data->temp_path);
+    free_labyrinth(data->maze_copy);
+}
+
+
 path_t **find_robot_paths(labyrinth_t *maze)
 {
-    path_t **paths;
-    labyrinth_t *maze_copy;
+    processing_data_t data;
     int i;
-    int node_count = 0;
-    node_t **node_mapping;
-    node_t *current;
-    node_t *copy_current;
-    path_t *temp_path;
-    int map_index;
-    path_node_t *current_node;
-    node_t *original_node;
-
-    if (!maze || maze->robots <= 0)
+    if (!maze || !init_processing_data(maze, &data))
         return NULL;
-    paths = malloc(sizeof(path_t *) * maze->robots);
-    if (!paths)
-        return NULL;
-    current = maze->root;
-    while (current) {
-        node_count++;
-        current = current->next_node;
-    }
-    node_mapping = malloc(sizeof(node_t *) * node_count * 2);
-    if (!node_mapping) {
-        free(paths);
-        return NULL;
-    }
     for (i = 0; i < maze->robots; i++) {
-        maze_copy = copy_labyrinth(maze);
-        if (!maze_copy) {
-            for (int j = 0; j < i; j++)
-                free_path(paths[j]);
-            free(paths);
-            free(node_mapping);
+        if(!update_processing_data(&data, maze, i))
             return NULL;
-        }
-        current = maze->root;
-        copy_current = maze_copy->root;
-        map_index = 0;
-        while (current && copy_current) {
-            node_mapping[map_index * 2] = copy_current;
-            node_mapping[map_index * 2 + 1] = current;
-            map_index++;
-            current = current->next_node;
-            copy_current = copy_current->next_node;
-        }
-        temp_path = find_shortest_path(maze_copy, maze_copy->start, maze_copy->end);
-        if (!temp_path) {
-            free_labyrinth(maze_copy);
-            for (int j = 0; j < i; j++)
-                free_path(paths[j]);
-            free(paths);
-            free(node_mapping);
+        if(!advance_processing_data(&data, data.maze_copy, i))
             return NULL;
-        }
-        paths[i] = create_path();
-        if (!paths[i]) {
-            free_path(temp_path);
-            free_labyrinth(maze_copy);
-            for (int j = 0; j < i; j++)
-                free_path(paths[j]);
-            free(paths);
-            free(node_mapping);
-            return NULL;
-        }
-        current_node = temp_path->head;
-        while (current_node) {
-            original_node = NULL;
-            for (int j = 0; j < node_count; j++) {
-                if (node_mapping[j * 2] == current_node->room) {
-                    original_node = node_mapping[j * 2 + 1];
-                    break;
-                }
-            }
-            if (original_node)
-                add_to_path(paths[i], original_node);
-            current_node = current_node->next;
-        }
-        reverse_path(paths[i]);
-        free_path(temp_path);
-        free_labyrinth(maze_copy);
+        fix_processing_data(&data, i);
     }
-    free(node_mapping);
-    return paths;
+    free(data.node_mapping);
+    return data.paths;
 }
 
 bool initialize_simulation(labyrinth_t *maze, path_t **paths,
