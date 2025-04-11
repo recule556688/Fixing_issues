@@ -18,13 +18,16 @@ SRC	=	src/main.c		\
 		src/algo/robot_paths.c		\
 		src/algo/path_operations.c	\
 		src/algo/node_operations.c	\
+		src/algo/labyrinth_utils.c	\
+		src/algo/path_utils.c 		\
+		src/algo/robot_movement.c 	\
 		src/algo/path_operations_utilies.c
 
 OBJ	=	$(SRC:.c=.o)
 
-CFLAGS	=	-Wall -Wextra -I./include -g -fsanitize=address
+CFLAGS	=	-Wall -Wextra -I./include -g
 
-LDFLAGS	=	-L./lib -lmy -fsanitize=address
+LDFLAGS	=	-L./lib -lmy
 
 all:	$(NAME)
 

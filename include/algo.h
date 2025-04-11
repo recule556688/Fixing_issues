@@ -53,4 +53,21 @@ void remove_path_from_maze(labyrinth_t *maze, path_t *path);
 /* Path operations utilities */
 int process_build_path(path_t *path, path_build_params_t *params);
 
+node_t **allocate_and_initialize_mapping(labyrinth_t *original,
+    int *node_count);
+node_t **copy_labyrinth_nodes(labyrinth_t *copy,
+    labyrinth_t *original, int *node_count);
+void copy_labyrinth_edges(labyrinth_t *copy, node_t **node_mapping,
+    int node_count);
+labyrinth_t *copy_labyrinth(labyrinth_t *original);
+bool copy_nodes_to_mapping(labyrinth_t *copy, labyrinth_t *original,
+    node_t **node_mapping, int node_count);
+void print_robot_movement(int robot_index, path_node_t *current,
+    path_node_t *next);
+bool check_robot_movement(int robot_index, labyrinth_t *maze,
+    path_node_t **current_positions, bool *finished);
+bool process_robot_movement(int robot_index, labyrinth_t *maze,
+    path_node_t **current_positions, bool *finished);
+void remove_path_from_maze(labyrinth_t *maze, path_t *path);
+
 #endif

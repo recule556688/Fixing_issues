@@ -10,6 +10,7 @@
     #include <stdlib.h>
     #include "my.h"
     #include "struct.h"
+    #include "algo.h"
 
 typedef enum ROOM_PARSING_STATUS {
     NONE,
@@ -32,5 +33,7 @@ void print_room_coordinates(int x, int y);
 void log_detected_room(const char *buffer);
 void trim_line(char *line, ssize_t read);
 void handle_unknown_command(const char *buffer);
+void remove_node_from_maze(labyrinth_t *maze, node_t *room);
+int num_labyrinth_nodes(labyrinth_t *maze);
 
 #endif

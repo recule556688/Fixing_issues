@@ -8,125 +8,25 @@
 #include "../../include/algo.h"
 #include <stdlib.h>
 
-static int num_labyrinth_nodes(labyrinth_t *maze)
+bool copy_nodes_to_mapping(labyrinth_t *copy, labyrinth_t *original,
+    node_t **node_mapping, int node_count)
 {
-    node_t *current = maze->root;
-    int node_count = 0;
-
-    while (current) {
-        node_count++;
-        current = current->next_node;
-    }
-    return node_count;
-}
-
-node_t **copy_labyrinth_nodes(labyrinth_t *copy,
-    labyrinth_t *original, int *node_count)
-{
-    node_t *current;
+    node_t *current = original->root;
     node_t *new_current;
-    node_t **node_mapping;
     int i = 0;
 
-    *node_count = num_labyrinth_nodes(original);
-    node_mapping = malloc(sizeof(node_t *) * (*node_count) * 2);
-    if (!node_mapping)
-        return NULL;
-    current = original->root;
     while (current) {
         new_current = clone_room(copy, original, current);
         if (!new_current) {
             free(node_mapping);
-            return NULL;
+            return false;
         }
         node_mapping[i * 2] = current;
         node_mapping[i * 2 + 1] = new_current;
         i++;
         current = current->next_node;
     }
-    return node_mapping;
-}
-
-void copy_labyrinth_edges(labyrinth_t *copy, node_t **node_mapping,
-    int node_count)
-{
-    node_t *current;
-    edge_t *edge;
-    node_t *target;
-
-    for (int i = 0; i < node_count; i++) {
-        current = node_mapping[i * 2];
-        edge = current->root_edge;
-        while (edge) {
-            target = NULL;
-            for (int j = 0; j < node_count; j++) {
-                if (node_mapping[j * 2] == edge->b) {
-                    target = node_mapping[j * 2 + 1];
-                    break;
-                }
-            }
-            if (target)
-                make_tunnel(copy, node_mapping[i * 2 + 1]->id, target->id);
-            edge = edge->next_edge;
-        }
-    }
-}
-
-labyrinth_t *copy_labyrinth(labyrinth_t *original)
-{
-    labyrinth_t *copy = create_empty_labyrinth();
-    node_t **node_mapping;
-    int node_count;
-
-    if (!copy || !original)
-        return NULL;
-    node_mapping = copy_labyrinth_nodes(copy, original, &node_count);
-    if (!node_mapping) {
-        free(copy);
-        return NULL;
-    }
-    copy->robots = original->robots;
-    copy_labyrinth_edges(copy, node_mapping, node_count);
-    free(node_mapping);
-    return copy;
-}
-
-void remove_node_from_maze(labyrinth_t *maze, node_t *room)
-{
-    node_t *current = maze->root;
-    node_t *prev = NULL;
-
-    while (current && current != room) {
-        prev = current;
-        current = current->next_node;
-    }
-    if (current) {
-        if (prev)
-            prev->next_node = current->next_node;
-        else
-            maze->root = current->next_node;
-        if (current == maze->tail)
-            maze->tail = prev;
-    }
-}
-
-void remove_path_from_maze(labyrinth_t *maze, path_t *path)
-{
-    path_node_t *path_node;
-
-    if (!maze || !path || !path->head)
-        return;
-    path_node = path->head;
-    if (path_node->room == maze->start)
-        path_node = path_node->next;
-    while (path_node && path_node->next) {
-        if (path_node->next->room == maze->end) {
-            path_node = path_node->next;
-            continue;
-        }
-        remove_node_from_maze(maze, path_node->room);
-        path_node = path_node->next;
-    }
+    return true;
 }
 
 path_t **find_robot_paths(labyrinth_t *maze)
@@ -240,53 +140,6 @@ bool initialize_simulation(labyrinth_t *maze, path_t **paths,
     return true;
 }
 
-void print_robot_movement(int robot_index, path_node_t *current, path_node_t *next)
-{
-    my_putstr("Robot ");
-    my_putnbr(robot_index);
-    my_putstr(" moves from ");
-    if (current && current->room && current->room->id) {
-        my_putstr(current->room->id);
-    } else {
-        my_putstr("(unknown)");
-    }
-    my_putstr(" to ");
-    if (next && next->room && next->room->id) {
-        my_putstr(next->room->id);
-    } else {
-        my_putstr("(unknown)");
-    }
-    my_putstr("\n");
-}
-
-bool process_robot_movement(int robot_index, labyrinth_t *maze,
-    path_node_t **current_positions, bool *finished)
-{
-    path_node_t *next = current_positions[robot_index]->next;
-    bool can_move = true;
-
-    if (!next) {
-        finished[robot_index] = true;
-        return false;
-    }
-    for (int j = 0; j < maze->robots; j++) {
-        if (robot_index == j || finished[j] || !current_positions[j])
-            continue;
-        if (current_positions[j]->room == next->room) {
-            can_move = false;
-            break;
-        }
-    }
-    if (can_move) {
-        print_robot_movement(robot_index, current_positions[robot_index], next);
-        current_positions[robot_index] = next;
-        if (!next->next) {
-            finished[robot_index] = true;
-        }
-    }
-    return !finished[robot_index];
-}
-
 bool simulate_step(labyrinth_t *maze, path_node_t **current_positions,
     bool *finished, int step)
 {
@@ -315,11 +168,15 @@ void simulate_robots(labyrinth_t *maze, path_t **paths)
     bool *finished;
     int step = 0;
     bool all_finished;
+    int step_incremented;
 
     if (!initialize_simulation(maze, paths, &current_positions, &finished))
         return;
     do {
-        all_finished = simulate_step(maze, current_positions, finished, step++);
+        step_incremented = step;
+        step++;
+        all_finished =
+            simulate_step(maze, current_positions, finished, step_incremented);
     } while (!all_finished);
     my_putstr("\nSimulation complete!\n");
     free(current_positions);
