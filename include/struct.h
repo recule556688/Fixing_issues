@@ -7,7 +7,6 @@
 
 #ifndef INCLUDED_STRUCT_H
     #define INCLUDED_STRUCT_H
-
     #include <stdbool.h>
 typedef struct edge edge_t;
 typedef struct node node_t;
@@ -41,6 +40,7 @@ typedef struct {
     node_t *prev;
     bool visited;
 } dijkstra_node_t;
+struct path_t;
 
 typedef struct {
     dijkstra_node_t **nodes;

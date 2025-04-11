@@ -23,6 +23,20 @@ typedef struct path {
     int length;
 } path_t;
 
+typedef struct processing_data{
+    path_t **paths;
+    labyrinth_t *maze_copy;
+    int i;
+    int node_count;
+    node_t **node_mapping;
+    node_t *current;
+    node_t *copy_current;
+    path_t *temp_path;
+    int map_index;
+    path_node_t *current_node;
+    node_t *original_node;
+} processing_data_t;
+
 /* Node operations */
 int count_nodes(labyrinth_t *maze);
 dijkstra_node_t **initialize_nodes(labyrinth_t *maze, node_t *start);
