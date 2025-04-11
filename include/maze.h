@@ -22,7 +22,7 @@ labyrinth_t *read_labyrinth(void);
 labyrinth_t *create_empty_labyrinth(void);
 void print_labyrinth(labyrinth_t *maze);
 void free_labyrinth(labyrinth_t *maze);
-node_t *clone_room(labyrinth_t *new_maze, labyrinth_t *old_maze, 
+node_t *clone_room(labyrinth_t *new_maze, labyrinth_t *old_maze,
     node_t *original);
 node_t *make_room(labyrinth_t *res, char *id, int x, int y);
 int make_tunnel(labyrinth_t *res, char *x, char *y);

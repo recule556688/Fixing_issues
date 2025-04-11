@@ -42,4 +42,19 @@ typedef struct {
     bool visited;
 } dijkstra_node_t;
 
+typedef struct {
+    dijkstra_node_t **nodes;
+    int count;
+    node_t *start;
+    node_t *end;
+} path_builder_t;
+
+
+typedef struct path_build_params_s {
+    dijkstra_node_t **nodes;
+    int count;
+    node_t *start;
+    node_t *end;
+} path_build_params_t;
+
 #endif

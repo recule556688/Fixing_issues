@@ -79,16 +79,18 @@ static void add_room_to_labyrinth(labyrinth_t *maze, node_t *room)
     maze->tail = room;
 }
 
-node_t *clone_room(labyrinth_t *new_maze, labyrinth_t *old_maze, 
+node_t *clone_room(labyrinth_t *new_maze, labyrinth_t *old_maze,
     node_t *orig)
 {
     node_t *new_room = make_room(new_maze, orig->id, orig->x, orig->y);
+
     if (orig == old_maze->start)
         new_maze->start = new_room;
     if (orig == old_maze->end)
         new_maze->end = new_room;
     return new_room;
 }
+
 node_t *make_room(labyrinth_t *res, char *id, int x, int y)
 {
     node_t *room = malloc(sizeof(node_t));

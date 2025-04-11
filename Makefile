@@ -14,7 +14,10 @@ SRC	=	src/main.c		\
 		src/parsing/memory.c		\
 		src/parsing/utils.c		\
 		src/algo/dijkstra.c		\
-		src/algo/robot_paths.c
+		src/algo/robot_paths.c		\
+		src/algo/path_operations.c	\
+		src/algo/node_operations.c	\
+		src/algo/path_operations_utilies.c
 
 OBJ	=	$(SRC:.c=.o)
 
