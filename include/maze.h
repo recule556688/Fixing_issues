@@ -28,4 +28,9 @@ node_t *make_room(labyrinth_t *res, char *id, int x, int y);
 int make_tunnel(labyrinth_t *res, char *x, char *y);
 node_t *find_room(labyrinth_t *rs, char *id);
 char *detect_sep(char *str, char sep);
+void print_room_coordinates(int x, int y);
+void log_detected_room(const char *buffer);
+void trim_line(char *line, ssize_t read);
+void handle_unknown_command(const char *buffer);
+
 #endif
