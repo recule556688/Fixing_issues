@@ -13,6 +13,7 @@ SRC	=	src/main.c		\
 		src/parsing/print.c		\
 		src/parsing/memory.c		\
 		src/parsing/utils.c		\
+		src/parsing/utils_two.c		\
 		src/algo/dijkstra.c		\
 		src/algo/robot_paths.c		\
 		src/algo/path_operations.c	\
