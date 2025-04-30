@@ -17,12 +17,12 @@ def fix_services(data):
         elif len(val) > 10:
             data.iloc[i, 1] = "International"
         elif len(val) != 0:
-            print(f"holeee f000k:{i} {val}") 
+            data.iloc[i, 1] = ""
 
 data = pd.read_csv(filepath_or_buffer="revised.csv", sep=";")
 fix_dates(data)
 fix_services(data)
-data.to_csv(filepath_or_buffer="revised.csv", sep=";")
+data.to_csv(path_or_buf="revised.csv", sep=";", index=False)
 
 
 
