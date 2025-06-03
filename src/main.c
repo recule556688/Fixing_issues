@@ -88,6 +88,8 @@ static int load_program_file(char *filename, vm_t *vm,
     int ret = 0;
     program_t *program;
 
+    //TODO: if you already have read the header of the program here, 
+    //put it inside the program and do not try to read the header again
     if ((load_program_file_aux(fd, filename, &header, buffer)) == 84) {
         close(fd);
         return 84;
@@ -106,17 +108,19 @@ int parse_args_aux(char **arg, int *next_prog_nbr,
     int *next_address, int *dump_cycle)
 {
     int res = 0;
-
-    if (my_strcmp(*arg, "-dump") == 0) {
-        *dump_cycle = my_atoi(*(arg + 1));
+    char *arg_str = arg[0];
+    char *num_str = arg[1];
+    //TODO: need to ensure there are sufficient arguments!
+    if (my_strcmp(arg_str, "-dump") == 0) {
+        *dump_cycle = my_atoi(num_str);
         res = 1;
     }
-    if (my_strcmp(*arg, "-n") == 0) {
-        *next_prog_nbr = my_atoi(*(arg + 1));
+    if (my_strcmp(arg_str, "-n") == 0) {
+        *next_prog_nbr = my_atoi(num_str);
         res = 1;
     }
-    if (my_strcmp(*arg, "-a") == 0) {
-        *next_address = my_atoi(*(arg + 1)) % MEM_SIZE;
+    if (my_strcmp(arg_str, "-a") == 0) {
+        *next_address = my_atoi(num_str) % MEM_SIZE;
         res = 1;
     }
     return res;
@@ -125,11 +129,10 @@ int parse_args_aux(char **arg, int *next_prog_nbr,
 static int parse_args_aux_two(char **arg, int *next_prog_nbr,
     int *next_address, vm_t *vm)
 {
-    if (load_program_file(*arg, vm,
-        *next_prog_nbr, *next_address) != 0) {
+    if (load_program_file(*arg, vm, *next_prog_nbr, *next_address) != 0) {
         return 84;
     }
-    *next_prog_nbr++;
+    *next_prog_nbr += 1;    
     *next_address = -1;
     return 0;
 }
@@ -140,7 +143,6 @@ static int parse_args(int argc, char **argv, vm_t *vm)
     int dump_cycle = -1;
     int next_prog_nbr = 1;
     int next_address = -1;
-    int program_count = 0;
 
     while (i < argc) {
         if (parse_args_aux(argv + i, &next_prog_nbr,
@@ -148,12 +150,11 @@ static int parse_args(int argc, char **argv, vm_t *vm)
             i += 2;
         } else {
             parse_args_aux_two(argv + i, &next_prog_nbr, &next_address, vm);
-            program_count++;
             i++;
         }
     }
     vm->dumper_cycle = (unsigned int)dump_cycle;
-    return (program_count == 0) ? 84 : 0;
+    return (next_prog_nbr > 1) ? 84 : 0;
 }
 
 static int initialize_vm(int argc, char **argv, vm_t **vm)

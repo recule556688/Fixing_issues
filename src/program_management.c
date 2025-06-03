@@ -39,11 +39,12 @@ program_t *initialize_program(int adress, int prog_number)
     program->next = NULL;
     return program;
 }
-
+//program bytes: string containing entire file.
 static void set_program_header(program_t *program, char *program_bytes)
 {
     unsigned char size_bytes[4];
-
+    //TODO: program_bytes is currently not set correctly.
+    //TODO: as said previously, probably can set program header with data that was already read the first time...
     my_memcpy(&(program->header.magic), program_bytes, MAGIC_SIZE);
     my_memcpy(size_bytes, program_bytes + OFS_PROGSIZE, 4);
     program->header.prog_size = (size_bytes[0] << 24) | (size_bytes[1] << 16) |

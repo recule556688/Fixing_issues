@@ -28,7 +28,7 @@ int find_optimal_adress(vm_t *vm, int prog_size);
 program_t *load_program(vm_t *vm, char *filename, int adress, int prog_number);
 int live(program_t *p, vm_t *vm);
 void add_program(vm_t *vm, program_t *program);
-op_t *find_command(int opcode);
+const op_t *find_command(int opcode);
 void fetch_command(vm_t *vm, program_t *p);
 int check_program(vm_t *vm, program_t *p);
 void execute_programs(vm_t *vm, int *finish);
