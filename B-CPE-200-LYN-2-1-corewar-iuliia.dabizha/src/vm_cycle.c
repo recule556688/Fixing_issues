@@ -89,6 +89,7 @@ int scheduler_aux(vm_t *vm, int *cycle_counter,
     if (vm->cycle == vm->dumper_cycle) {
         do_dump(vm->mem);
     }
+    return 0;
 }
 
 int scheduler(vm_t *vm)

@@ -158,12 +158,12 @@ static int parse_args(int argc, char **argv, vm_t *vm)
 
 static int initialize_vm(int argc, char **argv, vm_t **vm)
 {
-    if (argc < 2)
-        return 84;
-    if (argc == 2 && strcmp(argv[1], "-h") == 0) {
+    if (argc <= 1) {
         print_help();
         return 0;
     }
+    if (argc < 1)
+        return 84;
     *vm = create_vm();
     if (!*vm)
         return 84;

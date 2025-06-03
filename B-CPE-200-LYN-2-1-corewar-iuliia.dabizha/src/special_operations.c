@@ -40,6 +40,7 @@ static int lld_aux(vm_t *vm, unsigned int value, program_t *p, int *offset)
         }
         *offset += 1;
     }
+    return 0;
 }
 
 int lld(program_t *p, vm_t *vm)

@@ -34,6 +34,7 @@ SRC =   handle_char.c \
 		my_strcmp.c \
 		my_getnbr.c \
 		my_memcpy.c \
+		my_atoi.c \
 
 OBJ = $(SRC:.c=.o)
 NAME = libmy.a
