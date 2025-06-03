@@ -1,0 +1,121 @@
+/*
+** EPITECH PROJECT, 2025
+** B-CPE-200-LYN-2-1-corewar-iuliia.dabizha
+** File description:
+** instructions_memory
+*/
+
+#include "../include/corewar.h"
+#include "../include/my.h"
+
+int live(program_t *p, vm_t *vm)
+{
+    int player_number;
+
+    player_number = *((int *)(vm->mem + p->pc + 1));
+    my_printf("The player %d(%s) is alive\n",
+        player_number, p->header.prog_name);
+    p->pc = (p->pc + 5) % MEM_SIZE;
+    p->cycles_to_live = CYCLE_TO_DIE;
+    ++vm->live_count;
+    return 0;
+}
+
+static int extract_value(program_t *p, vm_t *vm, unsigned char op_byte,
+    unsigned int *value)
+{
+    int offset = 2;
+    unsigned short idx;
+
+    if (((op_byte >> 6) & 0x3) == T_DIR) {
+        *value = *((int *)(vm->mem + p->pc + offset));
+        offset += DIR_SIZE;
+    } else if (((op_byte >> 6) & 0x3) == T_IND) {
+        idx = *((unsigned short *)(vm->mem + p->pc + offset));
+        idx = idx % IDX_MOD;
+        *value = *((int *)(vm->mem + (p->pc + idx) % MEM_SIZE));
+        offset += IND_SIZE;
+    } else {
+        p->pc = (p->pc + 1) % MEM_SIZE;
+        return -1;
+    }
+    return offset;
+}
+
+int do_ld(program_t *p, vm_t *vm)
+{
+    unsigned char op_byte = vm->mem[p->pc + 1];
+    unsigned int value;
+    unsigned int reg_num;
+    int offset;
+
+    offset = extract_value(p, vm, op_byte, &value);
+    if (offset == -1) {
+        return 0;
+    }
+    if (((op_byte >> 4) & 0x3) == T_REG) {
+        reg_num = vm->mem[p->pc + offset];
+        if (reg_num >= 1 && reg_num <= REG_NUMBER) {
+            p->regs[reg_num] = value;
+            p->regs[0] = (value == 0) ? 1 : 0;
+        }
+        offset += 1;
+    }
+    p->pc = (p->pc + offset) % MEM_SIZE;
+    return 0;
+}
+
+static int handle_source_register(program_t *p, vm_t *vm,
+    unsigned char op_byte, unsigned int *reg_num)
+{
+    int offset = 2;
+
+    if (((op_byte >> 6) & 0x3) == T_REG) {
+        *reg_num = vm->mem[p->pc + offset];
+        if (*reg_num < 1 || *reg_num > REG_NUMBER) {
+            p->pc = (p->pc + 1) % MEM_SIZE;
+            return -1;
+        }
+        return offset + 1;
+    } else {
+        p->pc = (p->pc + 1) % MEM_SIZE;
+        return -1;
+    }
+}
+
+static int handle_target_register(program_t *p, vm_t *vm,
+    unsigned int reg_num, int offset)
+{
+    unsigned int target_reg;
+    unsigned short idx;
+    unsigned char op_byte = vm->mem[p->pc + 1];
+
+    if (((op_byte >> 4) & 0x3) == T_REG) {
+        target_reg = vm->mem[p->pc + offset];
+        if (target_reg >= 1 && target_reg <= REG_NUMBER) {
+            p->regs[target_reg] = p->regs[reg_num];
+        }
+        offset += 1;
+    } else if (((op_byte >> 4) & 0x3) == T_IND) {
+        idx = *((unsigned short *)(vm->mem + p->pc + offset));
+        idx = idx % IDX_MOD;
+        *((int *)(vm->mem + (p->pc + idx) % MEM_SIZE)) = p->regs[reg_num];
+        offset += IND_SIZE;
+    }
+    return offset;
+}
+
+int do_st(program_t *p, vm_t *vm)
+{
+    unsigned char op_byte = vm->mem[p->pc + 1];
+    unsigned int reg_num;
+    int offset;
+
+    offset = handle_source_register(p, vm, op_byte, &reg_num);
+    if (offset == -1) {
+        return 0;
+    }
+    offset = handle_target_register(p, vm, reg_num, offset);
+    p->pc = (p->pc + offset) % MEM_SIZE;
+    return 0;
+}
