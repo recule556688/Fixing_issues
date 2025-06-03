@@ -1,0 +1,6 @@
+id,age,income,education,satisfaction
+1,25,45000,Bachelor,4.5
+2,,52000,Master,3.8
+3,41,,PhD,4.2
+4,33,48000,,
+5,29,51000,Bachelor, 
