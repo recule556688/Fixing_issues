@@ -1,7 +1,0 @@
-.vscode
-.DS_Store
-B-CPE-200_corewar_champions/
-lib/libmy.a
-libmy.a
-corewar
-src/*.o

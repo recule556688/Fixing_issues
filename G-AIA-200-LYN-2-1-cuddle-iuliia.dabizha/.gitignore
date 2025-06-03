@@ -1,7 +1,0 @@
-coding-style-reports.log
-G-AIA-200_cuddle.pdf
-lib/my/dataframe/*.o
-cuddle
-lib/libcuddle.a
-lib/my/libcuddle.a
-libcuddle.a
