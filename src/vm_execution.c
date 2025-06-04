@@ -7,13 +7,13 @@
 
 #include "../include/corewar.h"
 
-const op_t *find_command(int opcode)
+op_t *find_command(int opcode)
 {
     int i = 0;
 
     while (op_tab[i].mnemonique != NULL) {
         if (op_tab[i].code == opcode) {
-            return &op_tab[i];
+            return op_tab + i;
         }
         ++i;
     }
@@ -23,7 +23,7 @@ const op_t *find_command(int opcode)
 void fetch_command(vm_t *vm, program_t *p)
 {
     int opcode = vm->mem[p->pc];
-    const op_t *cmd = find_command(opcode);
+    op_t *cmd = find_command(opcode);
 
     if (cmd != NULL) {
         p->cycles_to_wait = cmd->nbr_cycles;

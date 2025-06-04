@@ -6,7 +6,7 @@
 ##
 
 CC = gcc
-CFLAGS = -Iinclude -Wall -Wextra -g
+CFLAGS = -Iinclude
 LIB = lib/libmy.a
 SRC_DIR = src
 LIB_DIR = lib/my
