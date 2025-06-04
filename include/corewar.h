@@ -37,7 +37,7 @@ void handle_cycle_to_die(vm_t *vm, int *cycles_to_die,
 void run_command(vm_t *vm, program_t *p);
 int check_if_programs_running(vm_t *vm);
 int scheduler(vm_t *vm);
-program_t *create_program(vm_t *vm, char *program_bytes,
+program_t *create_program(vm_t *vm, char *program_bytes, header_t *header,
     int adress, int prog_number);
 int do_ld(program_t *p, vm_t *vm);
 int do_st(program_t *p, vm_t *vm);
@@ -55,7 +55,7 @@ int lldi(program_t *p, vm_t *vm);
 int lfork(program_t *p, vm_t *vm);
 int aff(program_t *p, vm_t *vm);
 uint32_t convert_endian(uint32_t value);
-int read_champion_header(int fd, header_t *header);
+int read_champion_header(int fd, header_t *header, char *filename);
 void do_dump(unsigned char *mem);
 int my_atoi(const char *str);
 int get_parameter_value_one_g(program_t *p, vm_t *vm,

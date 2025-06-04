@@ -37,45 +37,29 @@ static void print_help(void)
     my_printf("The addresses are modulo MEM_SIZE\n");
 }
 
-static int validate_and_read_header(int fd, char *filename, header_t *header)
+static int read_program_code(int fd, header_t *header, unsigned char *buffer,
+    char *filename)
 {
-    if (read_champion_header(fd, header) != 0) {
-        my_printf("Error: File %s is too small or corrupted\n", filename);
-        return 84;
-    }
-    if (header->magic != COREWAR_EXEC_MAGIC) {
-        my_printf("Error: %s has an invalid header"
-            " (magic: %x, expected: %x)\n",
-            filename, header->magic, COREWAR_EXEC_MAGIC);
-        return 84;
-    }
-    if (header->prog_size > MEM_SIZE) {
-        my_printf("Error: %s has too large a program (%d > %d)\n",
-            filename, header->prog_size, MEM_SIZE);
-        return 84;
-    }
-    return 0;
-}
+    int ret = read(fd, buffer, header->prog_size);
 
-static int load_program_file_aux(int fd, char *filename,
-    header_t *header, unsigned char *buffer)
-{
-    int ret;
-
-    if (fd == -1) {
-        my_printf("Error: Can't open %s\n", filename);
+    if (ret < 0) {
+        my_printf("Error: Failed to read from file %s\n", filename);
         return 84;
     }
-    if (validate_and_read_header(fd, filename, header) != 0) {
-        close(fd);
-        return 84;
-    }
-    ret = read(fd, buffer, header->prog_size);
     if (ret < (int)header->prog_size) {
-        my_printf("Error: File %s is corrupted\n", filename);
-        close(fd);
+        my_printf("Error: File %s is corrupted (read %d bytes, expected %d)\n",
+            filename, ret, header->prog_size);
         return 84;
     }
+    // Verify we're at the end of the file
+    unsigned char dummy;
+    if (read(fd, &dummy, 1) > 0) {
+        my_printf("Error: File %s is too large (program size mismatch)\n", filename);
+        return 84;
+    }
+    my_printf("Debug: Successfully read %d bytes of program code\n", ret);
+    my_printf("Debug: First few bytes: 0x%02x 0x%02x 0x%02x 0x%02x\n",
+        buffer[0], buffer[1], buffer[2], buffer[3]);
     return 0;
 }
 
@@ -84,15 +68,32 @@ static int load_program_file(char *filename, vm_t *vm,
 {
     int fd = open(filename, O_RDONLY);
     header_t header;
-    unsigned char buffer[MEM_SIZE];
+    unsigned char *buffer = NULL;
     int ret = 0;
     program_t *program;
 
-    if ((load_program_file_aux(fd, filename, &header, buffer)) == 84) {
+    if (fd == -1) {
+        my_printf("Error: Can't open %s\n", filename);
+        return 84;
+    }
+    if (read_champion_header(fd, &header, filename) == 84) {
         close(fd);
         return 84;
     }
-    program = create_program(vm, (char *)buffer, address, prog_nbr);
+    my_printf("Debug: Reading program code of size %d\n", header.prog_size);
+    buffer = malloc(header.prog_size);
+    if (!buffer) {
+        my_printf("Error: Memory allocation failed\n");
+        close(fd);
+        return 84;
+    }
+    if (read_program_code(fd, &header, buffer, filename) != 0) {
+        free(buffer);
+        close(fd);
+        return 84;
+    }
+    program = create_program(vm, (char *)buffer, &header, address, prog_nbr);
+    free(buffer);
     if (!program) {
         close(fd);
         return 84;
@@ -125,11 +126,15 @@ int parse_args_aux(char **arg, int *next_prog_nbr,
 static int parse_args_aux_two(char **arg, int *next_prog_nbr,
     int *next_address, vm_t *vm)
 {
-    if (load_program_file(*arg, vm,
-        *next_prog_nbr, *next_address) != 0) {
+    int address = *next_address;
+    if (address == -1) {
+        // If no address specified, find optimal address
+        address = find_optimal_adress(vm, 0); // We'll get the actual size in load_program_file
+    }
+    if (load_program_file(*arg, vm, *next_prog_nbr, address) != 0) {
         return 84;
     }
-    *next_prog_nbr++;
+    (*next_prog_nbr)++;
     *next_address = -1;
     return 0;
 }
