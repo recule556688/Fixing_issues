@@ -18,8 +18,6 @@ vm_t *create_vm(void)
     vm->live_count = 0;
     vm->programs = NULL;
     vm->dumper_cycle = -1;
-    
-    // Initialize memory with 0xFF to help detect uninitialized memory
     for (int i = 0; i < MEM_SIZE; ++i) {
         vm->mem[i] = 0xFF;
     }
@@ -62,16 +60,14 @@ int find_optimal_adress(vm_t *vm, int prog_size)
 {
     int mem_part = MEM_SIZE / 4;
     int prog_count = count_programs(vm);
+    int start_adress;
 
     if (prog_count == 0) {
-        return 0;  // First program always starts at 0
+        return 0;
     }
-    int start_adress = (prog_count * mem_part) % MEM_SIZE;
-
-    // Check if the calculated address is free
+    start_adress = (prog_count * mem_part) % MEM_SIZE;
     if (is_memory_block_free(vm, start_adress, prog_size)) {
         return start_adress;
     }
-    // If not free, find the next free block
     return find_free_space(vm, prog_size);
 }

@@ -41,6 +41,7 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
     char *filename)
 {
     int ret = read(fd, buffer, header->prog_size);
+    unsigned char dummy;
 
     if (ret < 0) {
         my_printf("Error: Failed to read from file %s\n", filename);
@@ -51,10 +52,9 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
             filename, ret, header->prog_size);
         return 84;
     }
-    // Verify we're at the end of the file
-    unsigned char dummy;
     if (read(fd, &dummy, 1) > 0) {
-        my_printf("Error: File %s is too large (program size mismatch)\n", filename);
+        my_printf("Error: File %s is too large"
+            " (program size mismatch)\n", filename);
         return 84;
     }
     my_printf("Debug: Successfully read %d bytes of program code\n", ret);
@@ -128,16 +128,13 @@ static int parse_args_aux_two(char **arg, int *next_prog_nbr,
     int *next_address, vm_t *vm)
 {
     int address = *next_address;
+
     if (address == -1) {
-        // If no address specified, find optimal address
         address = find_optimal_adress(vm, 0);
         my_printf("Debug: Selected optimal address: %d\n", address);
     }
-    // Ensure address is within bounds
     address = address % MEM_SIZE;
     my_printf("Debug: Final load address: %d\n", address);
-
-    // Pass the correct address to load_program_file
     if (load_program_file(*arg, vm, *next_prog_nbr, address) != 0) {
         return 84;
     }

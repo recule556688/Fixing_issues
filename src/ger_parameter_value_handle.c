@@ -13,7 +13,6 @@ int get_parameter_value_one(program_t *p, vm_t *vm, int *offset, int mod_idx)
     unsigned char type = (op_byte >> 6) & 0x3;
 
     my_printf("Debug: Parameter 1 type: 0x%x\n", type);
-
     if (type == T_REG) {
         return handle_register(p, vm, offset);
     }
@@ -32,7 +31,6 @@ int get_parameter_value_two(program_t *p, vm_t *vm, int *offset, int mod_idx)
     unsigned char type = (op_byte >> 4) & 0x3;
 
     my_printf("Debug: Parameter 2 type: 0x%x\n", type);
-
     if (type == T_REG) {
         return handle_register(p, vm, offset);
     }
@@ -51,7 +49,6 @@ int get_parameter_value_three(program_t *p, vm_t *vm, int *offset, int mod_idx)
     unsigned char type = (op_byte >> 2) & 0x3;
 
     my_printf("Debug: Parameter 3 type: 0x%x\n", type);
-
     if (type == T_REG) {
         return handle_register(p, vm, offset);
     }
