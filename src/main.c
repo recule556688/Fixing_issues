@@ -53,8 +53,7 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
         return 84;
     }
     if (read(fd, &dummy, 1) > 0) {
-        my_printf("Error: File %s is too large"
-            " (program size mismatch)\n", filename);
+        my_printf("Error: File %s is too large\n", filename);
         return 84;
     }
     my_printf("Debug: Successfully read %d bytes of program code\n", ret);
@@ -64,7 +63,7 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
 }
 
 static int load_program_file(char *filename, vm_t *vm,
-    int prog_nbr, int address)
+    int prog_nbr, int address)  /////this one fix!!!
 {
     int fd = open(filename, O_RDONLY);
     header_t header;
