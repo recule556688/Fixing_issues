@@ -63,7 +63,7 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
 }
 
 static int load_program_file(char *filename, vm_t *vm,
-    int prog_nbr, int address)  /////this one fix!!!
+    int prog_nbr, int address)
 {
     int fd = open(filename, O_RDONLY);
     header_t header;

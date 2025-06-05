@@ -52,6 +52,23 @@ int read_size_and_comment(int fd, header_t *header,
     return 0;
 }
 
+static int validate_header(header_t *header, char *filename)
+{
+    if (header->magic != COREWAR_EXEC_MAGIC) {
+        my_printf("Error: %s has an invalid header"
+            " (magic: 0x%x, expected: 0x%x)\n"
+            , filename, header->magic, COREWAR_EXEC_MAGIC);
+        return 84;
+    }
+    if (header->prog_size <= 0 || header->prog_size > MEM_SIZE) {
+        my_printf("Error: %s has invalid program size: %d"
+            " (must be > 0 and <= %d)\n",
+            filename, header->prog_size, MEM_SIZE);
+        return 84;
+    }
+    return 0;
+}
+
 int read_champion_header(int fd, header_t *header, char *filename)
 {
     unsigned char magic_buf[4];
@@ -67,17 +84,5 @@ int read_champion_header(int fd, header_t *header, char *filename)
         my_printf("Error: File %s is too small or corrupted\n", filename);
         return 84;
     }
-    if (header->magic != COREWAR_EXEC_MAGIC) {
-        my_printf("Error: %s has an invalid header"
-            " (magic: 0x%x, expected: 0x%x)\n"
-            , filename, header->magic, COREWAR_EXEC_MAGIC);
-        return 84;
-    }
-    if (header->prog_size <= 0 || header->prog_size > MEM_SIZE) {
-        my_printf("Error: %s has invalid program size: %d"
-            " (must be > 0 and <= %d)\n",
-            filename, header->prog_size, MEM_SIZE);
-        return 84;
-    }
-    return 0;
+    return validate_header(header, filename);
 }
