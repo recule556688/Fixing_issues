@@ -121,14 +121,69 @@ static void execute_extended_opcodes(vm_t *vm, program_t *p,
     }
 }
 
+static void execute_opcode_switch(vm_t *vm, program_t *p, unsigned char opcode)
+{
+    if (opcode >= 1 && opcode <= 3)
+        execute_opcode(vm, p, opcode);
+    if (opcode >= 4 && opcode <= 8)
+        execute_arithmetic_opcodes(vm, p, opcode);
+    if (opcode >= 9 && opcode <= 12)
+        execute_memory_opcodes(vm, p, opcode);
+    if (opcode >= 13 && opcode <= 16)
+        execute_extended_opcodes(vm, p, opcode);
+}
+
+static int calculate_regular_instruction_size(unsigned char opcode,
+    unsigned char coding_byte)
+{
+    int size = 2;
+    unsigned char param_type;
+
+    for (int i = 0; i < 3; i++) {
+        param_type = (coding_byte >> (6 - i * 2)) & 0x3;
+        if (param_type == 0)
+            continue;
+        if (param_type == T_REG)
+            size += 1;
+        if (param_type == T_DIR)
+            size += (opcode == 2 || opcode == 13) ? 4 : 2;
+        if (param_type == T_IND)
+            size += 2;
+    }
+    return size;
+}
+
+static int calculate_special_instruction_size(unsigned char opcode)
+{
+    if (opcode == 1)
+        return 5;
+    if (opcode == 9 || opcode == 12 || opcode == 15)
+        return 3;
+    return 1;
+}
+
+static void update_pc_and_print(program_t *p, vm_t *vm, unsigned char opcode)
+{
+    int instruction_size;
+    unsigned char coding_byte;
+
+    if (opcode != 1 && opcode != 9 && opcode != 12 && opcode != 15) {
+        coding_byte = vm->mem[(p->pc + 1) % MEM_SIZE];
+        instruction_size = calculate_regular_instruction_size(opcode,
+            coding_byte);
+    } else {
+        instruction_size = calculate_special_instruction_size(opcode);
+    }
+    p->pc = (p->pc + instruction_size) % MEM_SIZE;
+    my_printf("Debug: Updated PC to %d (instruction size: %d)\n",
+        p->pc, instruction_size);
+}
+
 void run_command(vm_t *vm, program_t *p)
 {
     unsigned char opcode = vm->mem[p->pc];
     op_t *cmd = find_command(opcode);
     int initial_pc = p->pc;
-    int instruction_size;
-    unsigned char coding_byte;
-    unsigned char param_type;
 
     if (!cmd) {
         my_printf("Warning: Invalid opcode 0x%x at PC=%d, skipping byte\n",
@@ -138,89 +193,7 @@ void run_command(vm_t *vm, program_t *p)
     }
     my_printf("Debug: Executing opcode 0x%x (%s) at PC=%d\n",
         opcode, cmd->mnemonique, p->pc);
-    switch (opcode) {
-        case 1:
-            live(p, vm);
-            break;
-        case 2:
-            do_ld(p, vm);
-            break;
-        case 3:
-            do_st(p, vm);
-            break;
-        case 4:
-            add(p, vm);
-            break;
-        case 5:
-            sub(p, vm);
-            break;
-        case 6:
-            and_f(p, vm);
-            break;
-        case 7:
-            or_f(p, vm);
-            break;
-        case 8:
-            xor_f(p, vm);
-            break;
-        case 9:
-            zjmp(p, vm);
-            break;
-        case 10:
-            ldi(p, vm);
-            break;
-        case 11:
-            sti(p, vm);
-            break;
-        case 12:
-            fork_program(p, vm);
-            break;
-        case 13:
-            lld(p, vm);
-            break;
-        case 14:
-            lldi(p, vm);
-            break;
-        case 15:
-            lfork(p, vm);
-            break;
-        case 16:
-            aff(p, vm);
-            break;
-        default:
-            break;
-    }
-        if (p->pc == initial_pc) {
-        instruction_size = 1;
-        if (opcode != 1 && opcode != 9 && opcode != 12 && opcode != 15) {
-            instruction_size++;
-            coding_byte = vm->mem[(p->pc + 1) % MEM_SIZE];
-            for (int i = 0; i < 3; i++) {
-                param_type = (coding_byte >> (6 - i * 2)) & 0x3;
-                if (param_type == 0)
-                    continue;
-                if (param_type == T_REG) {
-                    instruction_size += 1;
-                } else if (param_type == T_DIR) {
-                    instruction_size += (opcode == 2 || opcode == 13) ? 4 : 2;
-                } else if (param_type == T_IND) {
-                    instruction_size += 2;
-                }
-            }
-        } else {
-            switch (opcode) {
-                case 1:
-                    instruction_size += 4;
-                    break;
-                case 9:
-                case 12:
-                case 15:
-                    instruction_size += 2;
-                    break;
-            }
-        }
-        p->pc = (p->pc + instruction_size) % MEM_SIZE;
-        my_printf("Debug: Updated PC to %d (instruction size: %d)\n",
-            p->pc, instruction_size);
-    }
+    execute_opcode_switch(vm, p, opcode);
+    if (p->pc == initial_pc)
+        update_pc_and_print(p, vm, opcode);
 }
