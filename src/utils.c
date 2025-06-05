@@ -39,13 +39,17 @@ int read_size_and_comment(int fd, header_t *header,
         return -1;
     comment_buf[COMMENT_LENGTH] = '\0';
     lseek(fd, 4, SEEK_CUR);
+    
+    // Read size as a 4-byte value in big-endian format
     header->prog_size = ((size_buf[0] & 0xFF) << 24) |
         ((size_buf[1] & 0xFF) << 16) |
         ((size_buf[2] & 0xFF) << 8) |
         (size_buf[3] & 0xFF);
+    
     my_printf("Debug: Raw size bytes: 0x%02x 0x%02x 0x%02x 0x%02x\n",
         size_buf[0], size_buf[1], size_buf[2], size_buf[3]);
     my_printf("Debug: Program size: %d\n", header->prog_size);
+    
     for (int i = 0; i < COMMENT_LENGTH; i++)
         header->comment[i] = comment_buf[i];
     header->comment[COMMENT_LENGTH] = '\0';
@@ -77,7 +81,5 @@ int read_champion_header(int fd, header_t *header, char *filename)
             filename, header->prog_size, MEM_SIZE);
         return 84;
     }
-    // The program code starts immediately after the header
-    // No need to seek since we're already at the right position
     return 0;
 }

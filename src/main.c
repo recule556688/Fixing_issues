@@ -92,6 +92,7 @@ static int load_program_file(char *filename, vm_t *vm,
         close(fd);
         return 84;
     }
+    my_printf("Debug: Creating program at address %d\n", address);
     program = create_program(vm, (char *)buffer, &header, address, prog_nbr);
     free(buffer);
     if (!program) {
@@ -129,8 +130,14 @@ static int parse_args_aux_two(char **arg, int *next_prog_nbr,
     int address = *next_address;
     if (address == -1) {
         // If no address specified, find optimal address
-        address = find_optimal_adress(vm, 0); // We'll get the actual size in load_program_file
+        address = find_optimal_adress(vm, 0);
+        my_printf("Debug: Selected optimal address: %d\n", address);
     }
+    // Ensure address is within bounds
+    address = address % MEM_SIZE;
+    my_printf("Debug: Final load address: %d\n", address);
+
+    // Pass the correct address to load_program_file
     if (load_program_file(*arg, vm, *next_prog_nbr, address) != 0) {
         return 84;
     }

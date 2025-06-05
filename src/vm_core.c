@@ -59,12 +59,16 @@ int find_optimal_adress(vm_t *vm, int prog_size)
 {
     int mem_part = MEM_SIZE / 4;
     int prog_count = count_programs(vm);
+
+    if (prog_count == 0) {
+        return 0;  // First program always starts at 0
+    }
     int start_adress = (prog_count * mem_part) % MEM_SIZE;
 
-    for (int i = 0; i < prog_size; i++) {
-        if (vm->mem[(start_adress + i) % MEM_SIZE] != 0) {
-            return find_free_space(vm, prog_size);
-        }
+    // Check if the calculated address is free
+    if (is_memory_block_free(vm, start_adress, prog_size)) {
+        return start_adress;
     }
-    return start_adress;
+    // If not free, find the next free block
+    return find_free_space(vm, prog_size);
 }

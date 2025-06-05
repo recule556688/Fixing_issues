@@ -182,17 +182,5 @@ void run_command(vm_t *vm, program_t *p)
             aff(p, vm);
             break;
     }
-
-    if (p->pc == initial_pc) {
-        p->pc = (p->pc + 1) % MEM_SIZE;
-        my_printf("Debug: Instruction did not update PC, advancing by 1 to %d\n", p->pc);
-    } else {
-        my_printf("Debug: PC updated from %d to %d\n", initial_pc, p->pc);
-    }
-
-    if (p->pc < 0 || p->pc >= MEM_SIZE) {
-        my_printf("Warning: PC out of bounds (%d), wrapping to %d\n", 
-            p->pc, p->pc % MEM_SIZE);
-        p->pc = p->pc % MEM_SIZE;
-    }
+    my_printf("Debug: PC updated from %d to %d\n", initial_pc, p->pc);
 }

@@ -22,21 +22,36 @@ int handle_register(program_t *p, vm_t *vm, int *offset)
 
 int handle_direct(program_t *p, vm_t *vm, int *offset)
 {
-    int value = *((int *)(vm->mem + p->pc + *offset));
+    int value = 0;
+    int i;
 
+    // Read 4 bytes in big-endian order
+    for (i = 0; i < DIR_SIZE; i++) {
+        value = (value << 8) | vm->mem[(p->pc + *offset + i) % MEM_SIZE];
+    }
     *offset += DIR_SIZE;
     return value;
 }
 
 int handle_indirect(program_t *p, vm_t *vm, int *offset, int mod_idx)
 {
-    unsigned short idx = *((unsigned short *)(vm->mem + p->pc + *offset));
-    int value;
+    unsigned short idx = 0;
+    int value = 0;
+    int i;
+
+    // Read 2 bytes in big-endian order
+    for (i = 0; i < IND_SIZE; i++) {
+        idx = (idx << 8) | vm->mem[(p->pc + *offset + i) % MEM_SIZE];
+    }
+    *offset += IND_SIZE;
 
     if (mod_idx) {
         idx = idx % IDX_MOD;
     }
-    value = *((int *)(vm->mem + (p->pc + idx) % MEM_SIZE));
-    *offset += IND_SIZE;
+
+    // Read 4 bytes at the calculated address in big-endian order
+    for (i = 0; i < DIR_SIZE; i++) {
+        value = (value << 8) | vm->mem[(p->pc + idx + i) % MEM_SIZE];
+    }
     return value;
 }

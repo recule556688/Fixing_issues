@@ -10,9 +10,13 @@
 
 int live(program_t *p, vm_t *vm)
 {
-    int player_number;
+    int player_number = 0;
+    int i;
 
-    player_number = *((int *)(vm->mem + p->pc + 1));
+    // Read 4 bytes in big-endian order
+    for (i = 0; i < DIR_SIZE; i++) {
+        player_number = (player_number << 8) | vm->mem[(p->pc + 1 + i) % MEM_SIZE];
+    }
     my_printf("The player %d(%s) is alive\n",
         player_number, p->header.prog_name);
     p->pc = (p->pc + 5) % MEM_SIZE;
