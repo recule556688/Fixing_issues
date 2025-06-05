@@ -46,44 +46,61 @@ static int extract_value(program_t *p, vm_t *vm, unsigned char op_byte,
     return offset;
 }
 
-int do_ld(program_t *p, vm_t *vm)
+static int handle_ld_register(program_t *p, vm_t *vm, unsigned char op_byte,
+    unsigned int value, int offset)
 {
-    unsigned char op_byte = vm->mem[p->pc + 1];
-    unsigned int value;
     unsigned int reg_num;
-    int offset = 2;
-    int start_pc = p->pc;
 
-    my_printf("Debug: LD instruction at PC=%d,"
-        " coding byte=0x%x\n", p->pc, op_byte);
-    if (((op_byte >> 6) & 0x3) == T_DIR) {
-        value = handle_direct(p, vm, &offset);
-        my_printf("Debug: LD direct value: %d\n", value);
-    } else if (((op_byte >> 6) & 0x3) == T_IND) {
-        value = handle_indirect(p, vm, &offset, 1);
-        my_printf("Debug: LD indirect value: %d\n", value);
-    } else {
-        my_printf("Error: Invalid first parameter type for LD\n");
-        p->pc = (p->pc + 1) % MEM_SIZE;
-        return 0;
-    }
     if (((op_byte >> 4) & 0x3) == T_REG) {
         reg_num = vm->mem[p->pc + offset];
         if (reg_num >= 1 && reg_num <= REG_NUMBER) {
             p->regs[reg_num] = value;
             p->regs[0] = (value == 0) ? 1 : 0;
-            my_printf("Debug: LD stored value %d"
-                " in register %d\n", value, reg_num);
+            my_printf("Debug: LD stored value %d in register %d\n",
+                value, reg_num);
+            return offset + 1;
         } else {
             my_printf("Error: Invalid register number %d for LD\n", reg_num);
         }
-        offset += 1;
     } else {
         my_printf("Error: Invalid second parameter type for LD\n");
     }
+    return offset;
+}
+
+static int handle_ld_parameter(program_t *p, vm_t *vm, unsigned char op_byte,
+    unsigned int *value, int *offset)
+{
+    if (((op_byte >> 6) & 0x3) == T_DIR) {
+        *value = handle_direct(p, vm, offset);
+        my_printf("Debug: LD direct value: %d\n", *value);
+        return 0;
+    } else if (((op_byte >> 6) & 0x3) == T_IND) {
+        *value = handle_indirect(p, vm, offset, 1);
+        my_printf("Debug: LD indirect value: %d\n", *value);
+        return 0;
+    } else {
+        my_printf("Error: Invalid first parameter type for LD\n");
+        p->pc = (p->pc + 1) % MEM_SIZE;
+        return -1;
+    }
+}
+
+int do_ld(program_t *p, vm_t *vm)
+{
+    unsigned char op_byte = vm->mem[p->pc + 1];
+    unsigned int value;
+    int offset = 2;
+    int start_pc = p->pc;
+
+    my_printf("Debug: LD instruction at PC=%d,"
+        " coding byte=0x%x\n", p->pc, op_byte);
+    if (handle_ld_parameter(p, vm, op_byte, &value, &offset) == -1)
+        return 0;
+    offset = handle_ld_register(p, vm, op_byte, value, offset);
     p->pc = (start_pc + offset) % MEM_SIZE;
-    my_printf("Debug: LD PC updated from %d"
-        " to %d (size: %d)\n", start_pc, p->pc, offset);
+    my_printf("Debug: LD PC updated from %d to %d (size: %d)\n",
+        start_pc, p->pc, offset);
     return 0;
 }
 
