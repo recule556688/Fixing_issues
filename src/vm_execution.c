@@ -7,8 +7,6 @@
 
 #include "../include/corewar.h"
 
-static int get_param_size(unsigned char type);
-
 op_t *find_command(int opcode)
 {
     int i = 0;
@@ -138,23 +136,56 @@ void run_command(vm_t *vm, program_t *p)
     my_printf("Debug: Executing opcode 0x%x (%s) at PC=%d\n",
         opcode, cmd->mnemonique, p->pc);
     switch (opcode) {
-        case 1: live(p, vm); break;
-        case 2: do_ld(p, vm); break;
-        case 3: do_st(p, vm); break;
-        case 4: add(p, vm); break;
-        case 5: sub(p, vm); break;
-        case 6: and_f(p, vm); break;
-        case 7: or_f(p, vm); break;
-        case 8: xor_f(p, vm); break;
-        case 9: zjmp(p, vm); break;
-        case 10: ldi(p, vm); break;
-        case 11: sti(p, vm); break;
-        case 12: fork_program(p, vm); break;
-        case 13: lld(p, vm); break;
-        case 14: lldi(p, vm); break;
-        case 15: lfork(p, vm); break;
-        case 16: aff(p, vm); break;
-        default: break;
+        case 1:
+            live(p, vm);
+            break;
+        case 2:
+            do_ld(p, vm);
+            break;
+        case 3:
+            do_st(p, vm);
+            break;
+        case 4:
+            add(p, vm);
+            break;
+        case 5:
+            sub(p, vm);
+            break;
+        case 6:
+            and_f(p, vm);
+            break;
+        case 7:
+            or_f(p, vm);
+            break;
+        case 8:
+            xor_f(p, vm);
+            break;
+        case 9:
+            zjmp(p, vm);
+            break;
+        case 10:
+            ldi(p, vm);
+            break;
+        case 11:
+            sti(p, vm);
+            break;
+        case 12:
+            fork_program(p, vm);
+            break;
+        case 13:
+            lld(p, vm);
+            break;
+        case 14:
+            lldi(p, vm);
+            break;
+        case 15:
+            lfork(p, vm);
+            break;
+        case 16:
+            aff(p, vm);
+            break;
+        default:
+            break;
     }
         if (p->pc == initial_pc) {
         int instruction_size = 1;
@@ -187,19 +218,5 @@ void run_command(vm_t *vm, program_t *p)
         p->pc = (p->pc + instruction_size) % MEM_SIZE;
         my_printf("Debug: Updated PC to %d (instruction size: %d)\n",
             p->pc, instruction_size);
-    }
-}
-
-static int get_param_size(unsigned char type)
-{
-    switch (type) {
-        case T_REG:
-            return 1;
-        case T_DIR:
-            return 4;
-        case T_IND:
-            return 2;
-        default:
-            return 0;
     }
 }
