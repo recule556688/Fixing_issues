@@ -47,20 +47,19 @@ static void set_program_header(program_t *program, header_t *header)
 }
 
 void load_program_to_memory(vm_t *vm, program_t *program,
-    char *program_bytes, int address_param)
+    char *program_bytes, int address_param, unsigned int prog_size_param)
 {
     int local_load_addr = address_param;
-    unsigned int local_prog_size = program->header.prog_size;
+    unsigned int local_prog_size = prog_size_param;
 
-    my_printf("Debug: LPTM func entry: address_param=%d, local_load_addr=%d, local_prog_size=%u\n",
-        address_param, local_load_addr, local_prog_size);
+    my_printf("Debug: LPTM entry: address_param=%d, local_load_addr=%d, prog_size_param=%u, local_prog_size=%u\n",
+        address_param, local_load_addr, prog_size_param, local_prog_size);
 
     my_printf("Debug: Loading program of size %u at address %d\n",
-        local_prog_size,
-        local_load_addr);
+        local_prog_size, local_load_addr);
 
     if (local_prog_size == 0) {
-        my_printf("Error: Invalid program size: %u\n", local_prog_size);
+        my_printf("Error: Invalid program size in LPTM: %u\n", local_prog_size);
         return;
     }
     if (local_prog_size > MEM_SIZE) {
@@ -78,8 +77,7 @@ void load_program_to_memory(vm_t *vm, program_t *program,
     }
 
     my_printf("Debug: Copying %u bytes to memory at address %d\n",
-        local_prog_size,
-        local_load_addr);
+        local_prog_size, local_load_addr);
 
     for (unsigned int i = 0; i < local_prog_size; i++) {
         vm->mem[(local_load_addr + i) % MEM_SIZE] = program_bytes[i];
@@ -89,20 +87,29 @@ void load_program_to_memory(vm_t *vm, program_t *program,
     my_printf("Debug: Set program PC to %d\n", program->pc);
 }
 
-program_t *create_program(vm_t *vm, char *program_bytes, header_t *header, int adress, int prog_number)
+program_t *create_program(vm_t *vm, char *program_bytes, header_t *header_param, int adress, int prog_number)
 {
     program_t *program = NULL;
-    int confirmed_address = adress; // Store address to prevent overwrite if 'adress' param is fragile
+    int confirmed_address = adress;
+    unsigned int confirmed_prog_size = 0;
 
-    my_printf("Debug: create_program received address: %d, prog_number: %d\n", confirmed_address, prog_number);
+    my_printf("Debug: create_program received address: %d, prog_number: %d, header_param->prog_size(raw): %d\n",
+        confirmed_address, prog_number, header_param->prog_size);
     program = initialize_program(confirmed_address, prog_number);
 
     if (!program) {
         my_printf("Error: initialize_program failed in create_program\n");
         return NULL;
     }
-    set_program_header(program, header);
-    my_printf("Debug: create_program calling load_program_to_memory with address: %d\n", confirmed_address);
-    load_program_to_memory(vm, program, program_bytes, confirmed_address);
+
+    set_program_header(program, header_param);
+    confirmed_prog_size = program->header.prog_size;
+
+    my_printf("Debug: create_program after set_program_header, program->header.prog_size: %u, captured confirmed_prog_size: %u\n",
+        program->header.prog_size, confirmed_prog_size);
+
+    my_printf("Debug: create_program calling LPTM with address: %d, confirmed_prog_size: %u\n",
+         confirmed_address, confirmed_prog_size);
+    load_program_to_memory(vm, program, program_bytes, confirmed_address, confirmed_prog_size);
     return program;
 }
