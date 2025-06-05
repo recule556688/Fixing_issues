@@ -17,8 +17,11 @@ vm_t *create_vm(void)
     vm->cycle = 0;
     vm->live_count = 0;
     vm->programs = NULL;
+    vm->dumper_cycle = -1;
+    
+    // Initialize memory with 0xFF to help detect uninitialized memory
     for (int i = 0; i < MEM_SIZE; ++i) {
-        vm->mem[i] = 0;
+        vm->mem[i] = 0xFF;
     }
     return vm;
 }

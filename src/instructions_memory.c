@@ -51,21 +51,42 @@ int do_ld(program_t *p, vm_t *vm)
     unsigned char op_byte = vm->mem[p->pc + 1];
     unsigned int value;
     unsigned int reg_num;
-    int offset;
+    int offset = 2;  // Start after opcode and coding byte
+    int start_pc = p->pc;
 
-    offset = extract_value(p, vm, op_byte, &value);
-    if (offset == -1) {
+    my_printf("Debug: LD instruction at PC=%d, coding byte=0x%x\n", p->pc, op_byte);
+
+    // Get first parameter (source)
+    if (((op_byte >> 6) & 0x3) == T_DIR) {
+        value = handle_direct(p, vm, &offset);
+        my_printf("Debug: LD direct value: %d\n", value);
+    } else if (((op_byte >> 6) & 0x3) == T_IND) {
+        value = handle_indirect(p, vm, &offset, 1);  // Use IDX_MOD
+        my_printf("Debug: LD indirect value: %d\n", value);
+    } else {
+        my_printf("Error: Invalid first parameter type for LD\n");
+        p->pc = (p->pc + 1) % MEM_SIZE;
         return 0;
     }
+
+    // Get second parameter (destination register)
     if (((op_byte >> 4) & 0x3) == T_REG) {
         reg_num = vm->mem[p->pc + offset];
         if (reg_num >= 1 && reg_num <= REG_NUMBER) {
             p->regs[reg_num] = value;
-            p->regs[0] = (value == 0) ? 1 : 0;
+            p->regs[0] = (value == 0) ? 1 : 0;  // Set carry
+            my_printf("Debug: LD stored value %d in register %d\n", value, reg_num);
+        } else {
+            my_printf("Error: Invalid register number %d for LD\n", reg_num);
         }
         offset += 1;
+    } else {
+        my_printf("Error: Invalid second parameter type for LD\n");
     }
-    p->pc = (p->pc + offset) % MEM_SIZE;
+
+    // Update PC by the total instruction size
+    p->pc = (start_pc + offset) % MEM_SIZE;
+    my_printf("Debug: LD PC updated from %d to %d (size: %d)\n", start_pc, p->pc, offset);
     return 0;
 }
 

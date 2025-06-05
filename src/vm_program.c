@@ -14,10 +14,12 @@ int check_program(vm_t *vm, program_t *p)
             --p->cycles_to_wait;
         } else {
             run_command(vm, p);
+            fetch_command(vm, p);
         }
+    } else {
+        p->running = 1;
+        fetch_command(vm, p);
     }
-    p->running = 1;
-    fetch_command(vm, p);
     return 0;
 }
 

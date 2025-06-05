@@ -12,10 +12,15 @@ int zjmp(program_t *p, vm_t *vm)
     short offset;
 
     if (p->regs[0] == 1) {
-        offset = *((short *)(vm->mem + p->pc + 1));
+        // Read the offset in big-endian format
+        offset = (vm->mem[(p->pc + 1) % MEM_SIZE] << 8) | 
+                vm->mem[(p->pc + 2) % MEM_SIZE];
+        // Apply IDX_MOD and update PC
         p->pc = (p->pc + (offset % IDX_MOD)) % MEM_SIZE;
+        my_printf("Debug: zjmp jumping to PC=%d (offset=%d)\n", p->pc, offset);
     } else {
         p->pc = (p->pc + 3) % MEM_SIZE;
+        my_printf("Debug: zjmp not jumping, carry=0, PC=%d\n", p->pc);
     }
     return 0;
 }
