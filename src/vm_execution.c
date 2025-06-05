@@ -126,6 +126,9 @@ void run_command(vm_t *vm, program_t *p)
     unsigned char opcode = vm->mem[p->pc];
     op_t *cmd = find_command(opcode);
     int initial_pc = p->pc;
+    int instruction_size;
+    unsigned char coding_byte;
+    unsigned char param_type;
 
     if (!cmd) {
         my_printf("Warning: Invalid opcode 0x%x at PC=%d, skipping byte\n",
@@ -188,13 +191,14 @@ void run_command(vm_t *vm, program_t *p)
             break;
     }
         if (p->pc == initial_pc) {
-        int instruction_size = 1;
+        instruction_size = 1;
         if (opcode != 1 && opcode != 9 && opcode != 12 && opcode != 15) {
             instruction_size++;
-            unsigned char coding_byte = vm->mem[(p->pc + 1) % MEM_SIZE];
+            coding_byte = vm->mem[(p->pc + 1) % MEM_SIZE];
             for (int i = 0; i < 3; i++) {
-                unsigned char param_type = (coding_byte >> (6 - i * 2)) & 0x3;
-                if (param_type == 0) continue;
+                param_type = (coding_byte >> (6 - i * 2)) & 0x3;
+                if (param_type == 0)
+                    continue;
                 if (param_type == T_REG) {
                     instruction_size += 1;
                 } else if (param_type == T_DIR) {
