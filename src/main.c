@@ -62,43 +62,59 @@ static int read_program_code(int fd, header_t *header, unsigned char *buffer,
     return 0;
 }
 
+static int allocate_and_read_buffer(int fd, header_t *header,
+    unsigned char **buffer, char *filename)
+{
+    my_printf("Debug: Reading program code of size %d\n", header->prog_size);
+    *buffer = malloc(header->prog_size);
+    if (!*buffer) {
+        my_printf("Error: Memory allocation failed\n");
+        close(fd);
+        return 84;
+    }
+    if (read_program_code(fd, header, *buffer, filename) != 0) {
+        free(*buffer);
+        close(fd);
+        return 84;
+    }
+    return 0;
+}
+
+static int create_and_add_program(vm_t *vm, unsigned char *buffer,
+    header_t *header, int address, int prog_nbr)
+{
+    program_t *program;
+
+    my_printf("Debug: Creating program at address %d\n", address);
+    program = create_program(vm, (char *)buffer, header, address, prog_nbr);
+    if (!program) {
+        return 84;
+    }
+    add_program(vm, program);
+    return 0;
+}
+
 static int load_program_file(char *filename, vm_t *vm,
     int prog_nbr, int address)
 {
     int fd = open(filename, O_RDONLY);
     header_t header;
     unsigned char *buffer = NULL;
-    int ret = 0;
-    program_t *program;
 
-    if (fd == -1) {
-        my_printf("Error: Can't open %s\n", filename);
+    if (fd == -1)
         return 84;
-    }
     if (read_champion_header(fd, &header, filename) == 84) {
         close(fd);
         return 84;
     }
-    my_printf("Debug: Reading program code of size %d\n", header.prog_size);
-    buffer = malloc(header.prog_size);
-    if (!buffer) {
-        my_printf("Error: Memory allocation failed\n");
-        close(fd);
+    if (allocate_and_read_buffer(fd, &header, &buffer, filename) != 0)
         return 84;
-    }
-    if (read_program_code(fd, &header, buffer, filename) != 0) {
+    if (create_and_add_program(vm, buffer, &header, address, prog_nbr) != 0) {
         free(buffer);
         close(fd);
         return 84;
     }
-    my_printf("Debug: Creating program at address %d\n", address);
-    program = create_program(vm, (char *)buffer, &header, address, prog_nbr);
     free(buffer);
-    if (!program) {
-        close(fd);
-        return 84;
-    }
-    add_program(vm, program);
     close(fd);
     return 0;
 }
