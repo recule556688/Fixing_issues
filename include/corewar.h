@@ -35,10 +35,12 @@ void execute_programs(vm_t *vm, int *finish);
 void handle_cycle_to_die(vm_t *vm, int *cycles_to_die,
     int *check_counter, int *cycle_counter);
 void run_command(vm_t *vm, program_t *p);
+void update_pc_and_print(program_t *p, vm_t *vm, unsigned char opcode);
 int check_if_programs_running(vm_t *vm);
 int scheduler(vm_t *vm);
-program_t *create_program(vm_t *vm, char *program_bytes, header_t *header,
-    int adress, int prog_number);
+program_t *create_program(vm_t *vm, prog_creation_info_t *info);
+void load_program_to_memory(vm_t *vm, program_t *program,
+    prog_load_info_t *info);
 int do_ld(program_t *p, vm_t *vm);
 int do_st(program_t *p, vm_t *vm);
 int add(program_t *p, vm_t *vm);
@@ -74,6 +76,9 @@ int get_indirect_value(vm_t *vm, program_t *p,
 int handle_register(program_t *p, vm_t *vm, int *offset);
 int handle_direct(program_t *p, vm_t *vm, int *offset);
 int handle_indirect(program_t *p, vm_t *vm, int *offset, int mod_idx);
+int parse_args(int argc, char **argv, vm_t *vm);
+int load_program_file(char *filename, vm_t *vm,
+    int prog_nbr, int address);
 
 //interpretation of assembler!!!!
 
