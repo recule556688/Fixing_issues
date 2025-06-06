@@ -80,13 +80,12 @@ static int allocate_and_read_buffer(int fd, header_t *header,
     return 0;
 }
 
-static int create_and_add_program(vm_t *vm, unsigned char *buffer,
-    header_t *header, int address, int prog_nbr)
+static int create_and_add_program(vm_t *vm, prog_creation_info_t *info)
 {
     program_t *program;
 
-    my_printf("Debug: Creating program at address %d\n", address);
-    program = create_program(vm, (char *)buffer, header, address, prog_nbr);
+    my_printf("Debug: Creating program at address %d\n", info->address);
+    program = create_program(vm, info);
     if (!program) {
         return 84;
     }
@@ -94,22 +93,38 @@ static int create_and_add_program(vm_t *vm, unsigned char *buffer,
     return 0;
 }
 
-static int load_program_file(char *filename, vm_t *vm,
-    int prog_nbr, int address)
+static int open_and_read_program(char *filename, int *fd,
+    header_t *header, unsigned char **buffer)
 {
-    int fd = open(filename, O_RDONLY);
-    header_t header;
-    unsigned char *buffer = NULL;
-
-    if (fd == -1)
+    *fd = open(filename, O_RDONLY);
+    if (*fd == -1)
         return 84;
-    if (read_champion_header(fd, &header, filename) == 84) {
-        close(fd);
+    if (read_champion_header(*fd, header, filename) == 84) {
+        close(*fd);
         return 84;
     }
-    if (allocate_and_read_buffer(fd, &header, &buffer, filename) != 0)
+    if (allocate_and_read_buffer(*fd, header, buffer, filename) != 0) {
+        close(*fd);
         return 84;
-    if (create_and_add_program(vm, buffer, &header, address, prog_nbr) != 0) {
+    }
+    return 0;
+}
+
+int load_program_file(char *filename, vm_t *vm,
+    int prog_nbr, int address)
+{
+    int fd = 0;
+    header_t header;
+    unsigned char *buffer = NULL;
+    prog_creation_info_t info;
+
+    if (open_and_read_program(filename, &fd, &header, &buffer) != 0)
+        return 84;
+    info.program_bytes = (char *)buffer;
+    info.header = &header;
+    info.address = address;
+    info.prog_number = prog_nbr;
+    if (create_and_add_program(vm, &info) != 0) {
         free(buffer);
         close(fd);
         return 84;
@@ -117,67 +132,6 @@ static int load_program_file(char *filename, vm_t *vm,
     free(buffer);
     close(fd);
     return 0;
-}
-
-int parse_args_aux(char **arg, int *next_prog_nbr,
-    int *next_address, int *dump_cycle)
-{
-    int res = 0;
-
-    if (my_strcmp(*arg, "-dump") == 0) {
-        *dump_cycle = my_atoi(*(arg + 1));
-        res = 1;
-    }
-    if (my_strcmp(*arg, "-n") == 0) {
-        *next_prog_nbr = my_atoi(*(arg + 1));
-        res = 1;
-    }
-    if (my_strcmp(*arg, "-a") == 0) {
-        *next_address = my_atoi(*(arg + 1)) % MEM_SIZE;
-        res = 1;
-    }
-    return res;
-}
-
-static int parse_args_aux_two(char **arg, int *next_prog_nbr,
-    int *next_address, vm_t *vm)
-{
-    int address = *next_address;
-
-    if (address == -1) {
-        address = find_optimal_adress(vm, 0);
-        my_printf("Debug: Selected optimal address: %d\n", address);
-    }
-    address = address % MEM_SIZE;
-    my_printf("Debug: Final load address: %d\n", address);
-    if (load_program_file(*arg, vm, *next_prog_nbr, address) != 0) {
-        return 84;
-    }
-    (*next_prog_nbr)++;
-    *next_address = -1;
-    return 0;
-}
-
-static int parse_args(int argc, char **argv, vm_t *vm)
-{
-    int i = 1;
-    int dump_cycle = -1;
-    int next_prog_nbr = 1;
-    int next_address = -1;
-    int program_count = 0;
-
-    while (i < argc) {
-        if (parse_args_aux(argv + i, &next_prog_nbr,
-            &next_address, &dump_cycle)) {
-            i += 2;
-        } else {
-            parse_args_aux_two(argv + i, &next_prog_nbr, &next_address, vm);
-            program_count++;
-            i++;
-        }
-    }
-    vm->dumper_cycle = (unsigned int)dump_cycle;
-    return (program_count == 0) ? 84 : 0;
 }
 
 static int initialize_vm(int argc, char **argv, vm_t **vm)

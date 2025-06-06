@@ -7,6 +7,7 @@
 
 #include "../include/corewar.h"
 #include "../include/my.h"
+#include "../include/corewar_struct.h"
 
 int live(program_t *p, vm_t *vm)
 {
@@ -46,16 +47,16 @@ static int extract_value(program_t *p, vm_t *vm, unsigned char op_byte,
     return offset;
 }
 
-static int handle_ld_register(program_t *p, vm_t *vm, unsigned char op_byte,
+static int handle_ld_register(op_context_t *ctx,
     unsigned int value, int offset)
 {
     unsigned int reg_num;
 
-    if (((op_byte >> 4) & 0x3) == T_REG) {
-        reg_num = vm->mem[p->pc + offset];
+    if (((ctx->op_byte >> 4) & 0x3) == T_REG) {
+        reg_num = ctx->vm->mem[ctx->p->pc + offset];
         if (reg_num >= 1 && reg_num <= REG_NUMBER) {
-            p->regs[reg_num] = value;
-            p->regs[0] = (value == 0) ? 1 : 0;
+            ctx->p->regs[reg_num] = value;
+            ctx->p->regs[0] = (value == 0) ? 1 : 0;
             my_printf("Debug: LD stored value %d in register %d\n",
                 value, reg_num);
             return offset + 1;
@@ -68,20 +69,20 @@ static int handle_ld_register(program_t *p, vm_t *vm, unsigned char op_byte,
     return offset;
 }
 
-static int handle_ld_parameter(program_t *p, vm_t *vm, unsigned char op_byte,
+static int handle_ld_parameter(op_context_t *ctx,
     unsigned int *value, int *offset)
 {
-    if (((op_byte >> 6) & 0x3) == T_DIR) {
-        *value = handle_direct(p, vm, offset);
+    if (((ctx->op_byte >> 6) & 0x3) == T_DIR) {
+        *value = handle_direct(ctx->p, ctx->vm, offset);
         my_printf("Debug: LD direct value: %d\n", *value);
         return 0;
-    } else if (((op_byte >> 6) & 0x3) == T_IND) {
-        *value = handle_indirect(p, vm, offset, 1);
+    } else if (((ctx->op_byte >> 6) & 0x3) == T_IND) {
+        *value = handle_indirect(ctx->p, ctx->vm, offset, 1);
         my_printf("Debug: LD indirect value: %d\n", *value);
         return 0;
     } else {
         my_printf("Error: Invalid first parameter type for LD\n");
-        p->pc = (p->pc + 1) % MEM_SIZE;
+        ctx->p->pc = (ctx->p->pc + 1) % MEM_SIZE;
         return -1;
     }
 }
@@ -92,12 +93,13 @@ int do_ld(program_t *p, vm_t *vm)
     unsigned int value;
     int offset = 2;
     int start_pc = p->pc;
+    op_context_t ctx = {p, vm, op_byte};
 
     my_printf("Debug: LD instruction at PC=%d,"
         " coding byte=0x%x\n", p->pc, op_byte);
-    if (handle_ld_parameter(p, vm, op_byte, &value, &offset) == -1)
+    if (handle_ld_parameter(&ctx, &value, &offset) == -1)
         return 0;
-    offset = handle_ld_register(p, vm, op_byte, value, offset);
+    offset = handle_ld_register(&ctx, value, offset);
     p->pc = (start_pc + offset) % MEM_SIZE;
     my_printf("Debug: LD PC updated from %d to %d (size: %d)\n",
         start_pc, p->pc, offset);

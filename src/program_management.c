@@ -82,19 +82,16 @@ static int validate_program_load(unsigned int prog_size, int load_addr)
 }
 
 void load_program_to_memory(vm_t *vm, program_t *program,
-    char *program_bytes, int address_param, unsigned int prog_size_param)
+    prog_load_info_t *info)
 {
-    int local_load_addr = address_param;
-    unsigned int local_prog_size = prog_size_param;
-
-    if (validate_program_load(local_prog_size, local_load_addr) != 0)
+    if (validate_program_load(info->prog_size, info->address) != 0)
         return;
     my_printf("Debug: Copying %u bytes to memory at address %d\n",
-        local_prog_size, local_load_addr);
-    for (unsigned int i = 0; i < local_prog_size; i++) {
-        vm->mem[(local_load_addr + i) % MEM_SIZE] = program_bytes[i];
+        info->prog_size, info->address);
+    for (unsigned int i = 0; i < info->prog_size; i++) {
+        vm->mem[(info->address + i) % MEM_SIZE] = info->program_bytes[i];
     }
-    program->pc = local_load_addr;
+    program->pc = info->address;
     my_printf("Debug: Set program PC to %d\n", program->pc);
 }
 
@@ -112,23 +109,24 @@ static void print_program_debug_info(int address, int prog_number,
         address, confirmed_prog_size);
 }
 
-program_t *create_program(vm_t *vm, char *program_bytes,
-    header_t *header_param, int adress, int prog_number)
+program_t *create_program(vm_t *vm, prog_creation_info_t *info)
 {
     program_t *program = NULL;
-    int confirmed_address = adress;
     unsigned int confirmed_prog_size = 0;
+    prog_load_info_t load_info;
 
-    print_program_debug_info(confirmed_address, prog_number,
-        header_param, confirmed_prog_size);
-    program = initialize_program(confirmed_address, prog_number);
+    print_program_debug_info(info->address, info->prog_number,
+        info->header, confirmed_prog_size);
+    program = initialize_program(info->address, info->prog_number);
     if (!program) {
         my_printf("Error: initialize_program failed in create_program\n");
         return NULL;
     }
-    set_program_header(program, header_param);
+    set_program_header(program, info->header);
     confirmed_prog_size = program->header.prog_size;
-    load_program_to_memory(vm, program, program_bytes,
-        confirmed_address, confirmed_prog_size);
+    load_info.program_bytes = info->program_bytes;
+    load_info.address = info->address;
+    load_info.prog_size = confirmed_prog_size;
+    load_program_to_memory(vm, program, &load_info);
     return program;
 }

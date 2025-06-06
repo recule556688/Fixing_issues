@@ -81,7 +81,6 @@ int scheduler_aux(vm_t *vm, int *cycle_counter,
         my_printf("Executing cycle %d\n", vm->cycle);
     }
     if (*cycle_counter >= CYCLE_TO_DIE) {
-        *check_counter++;
         handle_cycle_to_die(vm, &cycle_to_die,
             check_counter, cycle_counter);
         *finish = !check_if_programs_running(vm);
