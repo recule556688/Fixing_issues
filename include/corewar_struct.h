@@ -36,4 +36,23 @@ typedef struct program {
 
 typedef int (*cmd_t)(program_t *, vm_t *);
 
+typedef struct prog_load_info_s {
+    char *program_bytes;
+    int address;
+    unsigned int prog_size;
+} prog_load_info_t;
+
+typedef struct prog_creation_info_s {
+    char *program_bytes;
+    header_t *header;
+    int address;
+    int prog_number;
+} prog_creation_info_t;
+
+typedef struct op_context_s {
+    program_t *p;
+    vm_t *vm;
+    unsigned char op_byte;
+} op_context_t;
+
 #endif
