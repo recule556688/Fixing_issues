@@ -26,6 +26,10 @@ $(LIB):
 $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
 
+tests_run: all
+	@echo "Running tests..."
+	@./$(TARGET)
+
 clean:
 	@rm -f $(OBJ)
 	@echo "Object files removed"
@@ -38,4 +42,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all tests_run clean fclean re
